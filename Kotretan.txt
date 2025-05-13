@@ -1,0 +1,238 @@
+========= Struktur Frontend Laravel =========
+
+EventsApp/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Auth/
+│   │   │   ├── Guest/
+│   │   │   │   ├── EventController.php
+│   │   │   │   └── RegisterController.php
+│   │   │   ├── Member/
+│   │   │   │   ├── EventController.php
+│   │   │   │   ├── PaymentController.php
+│   │   │   │   └── CertificateController.php
+│   │   │   ├── Admin/
+│   │   │   │   ├── UserController.php
+│   │   │   │   └── RolesController.php
+│   │   │   ├── Finance/
+│   │   │   │   └── PaymentController.php
+│   │   │   └── Organizer/
+│   │   │       ├── EventController.php
+│   │   │       ├── AttendanceController.php
+│   │   │       └── CertificateController.php
+│   │   ├── Middleware/
+│   │   │   ├── CheckRole.php
+│   │   │   └── AuthenticateApi.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Role.php
+│   │   ├── Event.php
+│   │   ├── Registration.php
+│   │   ├── Payment.php
+│   │   ├── Attendance.php
+│   │   └── Certificate.php
+├── resources/
+│   ├── views/
+│   │   ├── layouts/
+│   │   │   ├── app.blade.php
+│   │   │   ├── guest.blade.php
+│   │   │   └── dashboard.blade.php
+│   │   ├── auth/
+│   │   ├── guest/
+│   │   │   ├── events/
+│   │   │   └── register.blade.php
+│   │   ├── member/
+│   │   │   ├── events/
+│   │   │   ├── payments/
+│   │   │   └── certificates/
+│   │   ├── admin/
+│   │   │   ├── users/
+│   │   │   └── roles/
+│   │   ├── finance/
+│   │   │   └── payments/
+│   │   └── organizer/
+│   │       ├── events/
+│   │       ├── attendance/
+│   │       └── certificates/
+│   ├── js/
+│   └── css/
+└── routes/
+    ├── web.php
+    └── api.php
+
+
+=========== Struktur Backend NodeJS ===========
+EventsApp-API/
+├── src/
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── eventController.js
+│   │   ├── paymentController.js
+│   │   ├── attendanceController.js
+│   │   └── certificateController.js
+│   ├── models/
+│   │   ├── userModel.js
+│   │   ├── eventModel.js
+│   │   ├── paymentModel.js
+│   │   ├── attendanceModel.js
+│   │   └── certificateModel.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── eventRoutes.js
+│   │   ├── paymentRoutes.js
+│   │   ├── attendanceRoutes.js
+│   │   └── certificateRoutes.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   └── roles.js
+│   ├── config/
+│   │   ├── database.js
+│   │   └── settings.js
+│   └── utils/
+│       ├── qrGenerator.js
+│       └── emailSender.js
+├── app.js
+└── server.js
+```
+
+=========== Struktur Database ===========
+
+Tabel Utama:
+- users
+- roles
+- user_roles
+- events
+- registrations
+- payments
+- attendances
+- certificates
+
+
+
+Database Schema mungkin kek gini:
+## Database Schema
+
+```sql
+-- Create database for EventsApp
+CREATE DATABASE IF NOT EXISTS eventsapp;
+
+USE eventsapp;
+
+-- Users table
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    email_verified_at TIMESTAMP NULL,
+    password VARCHAR(255) NOT NULL,
+    remember_token VARCHAR(100) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Roles table
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- User roles pivot table
+CREATE TABLE user_roles (
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+-- Events table
+CREATE TABLE events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    event_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    speaker VARCHAR(255) NOT NULL,
+    poster_image VARCHAR(255) NULL,
+    registration_fee DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    max_participants INT NOT NULL DEFAULT 0,
+    status ENUM('draft', 'published', 'completed', 'cancelled') NOT NULL DEFAULT 'draft',
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- Registrations table
+CREATE TABLE registrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_id INT NOT NULL,
+    registration_code VARCHAR(50) NOT NULL UNIQUE,
+    qr_code VARCHAR(255) NULL,
+    status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    UNIQUE KEY (user_id, event_id)
+);
+
+-- Payments table
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    registration_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_proof VARCHAR(255) NULL,
+    payment_date TIMESTAMP NULL,
+    verified_by INT NULL,
+    verification_date TIMESTAMP NULL,
+    status ENUM('pending', 'verified', 'rejected') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (registration_id) REFERENCES registrations(id) ON DELETE CASCADE,
+    FOREIGN KEY (verified_by) REFERENCES users(id)
+);
+
+-- Attendances table
+CREATE TABLE attendances (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    registration_id INT NOT NULL,
+    check_in_time TIMESTAMP NULL,
+    checked_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (registration_id) REFERENCES registrations(id) ON DELETE CASCADE,
+    FOREIGN KEY (checked_by) REFERENCES users(id)
+);
+
+-- Certificates table
+CREATE TABLE certificates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    registration_id INT NOT NULL,
+    certificate_file VARCHAR(255) NOT NULL,
+    certificate_code VARCHAR(50) NOT NULL UNIQUE,
+    issued_by INT NOT NULL,
+    issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (registration_id) REFERENCES registrations(id) ON DELETE CASCADE,
+    FOREIGN KEY (issued_by) REFERENCES users(id)
+);
+
+-- Insert default roles
+INSERT INTO roles (name, description) VALUES
+    ('guest', 'Unregistered user with limited access'),
+    ('member', 'Registered user who can participate in events'),
+    ('admin', 'Administrator with full system access'),
+    ('finance', 'Finance team member who handles payments'),
+    ('organizer', 'Event organizer who manages events');
+```
