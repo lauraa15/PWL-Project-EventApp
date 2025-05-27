@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`roles` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`users` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
-  INDEX `fk_users_roles_idx` (`role_id` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC),
+  INDEX `fk_users_roles_idx` (`role_id` ASC),
   CONSTRAINT `fk_users_roles`
     FOREIGN KEY (`role_id`)
     REFERENCES `eventsapp`.`roles` (`id`)
@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`api_tokens` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `token_UNIQUE` (`token` ASC) VISIBLE,
-  INDEX `fk_api_tokens_users_idx` (`user_id` ASC) VISIBLE,
+  UNIQUE INDEX `token_UNIQUE` (`token` ASC),
+  INDEX `fk_api_tokens_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_api_tokens_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `eventsapp`.`users` (`id`)
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`events` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_events_creator_idx` (`created_by` ASC) VISIBLE,
+  INDEX `fk_events_creator_idx` (`created_by` ASC),
   CONSTRAINT `fk_events_creator`
     FOREIGN KEY (`created_by`)
     REFERENCES `eventsapp`.`users` (`id`)
@@ -141,10 +141,10 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`registrations` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `registration_code_UNIQUE` (`registration_code` ASC) VISIBLE,
-  UNIQUE INDEX `user_event_UNIQUE` (`user_id` ASC, `event_id` ASC) VISIBLE,
-  INDEX `fk_registrations_events_idx` (`event_id` ASC) VISIBLE,
-  INDEX `fk_registrations_attendance_verifier_idx` (`attendance_verified_by` ASC) VISIBLE,
+  UNIQUE INDEX `registration_code_UNIQUE` (`registration_code` ASC),
+  UNIQUE INDEX `user_event_UNIQUE` (`user_id` ASC, `event_id` ASC),
+  INDEX `fk_registrations_events_idx` (`event_id` ASC),
+  INDEX `fk_registrations_attendance_verifier_idx` (`attendance_verified_by` ASC),
   CONSTRAINT `fk_registrations_attendance_verifier`
     FOREIGN KEY (`attendance_verified_by`)
     REFERENCES `eventsapp`.`users` (`id`)
@@ -180,9 +180,9 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`certificates` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `certificate_code_UNIQUE` (`certificate_code` ASC) VISIBLE,
-  UNIQUE INDEX `registration_id_UNIQUE` (`registration_id` ASC) VISIBLE,
-  INDEX `fk_certificates_issuer_idx` (`issued_by` ASC) VISIBLE,
+  UNIQUE INDEX `certificate_code_UNIQUE` (`certificate_code` ASC),
+  UNIQUE INDEX `registration_id_UNIQUE` (`registration_id` ASC),
+  INDEX `fk_certificates_issuer_idx` (`issued_by` ASC),
   CONSTRAINT `fk_certificates_issuer`
     FOREIGN KEY (`issued_by`)
     REFERENCES `eventsapp`.`users` (`id`)
@@ -215,8 +215,8 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`payments` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_payments_registrations_idx` (`registration_id` ASC) VISIBLE,
-  INDEX `fk_payments_verifier_idx` (`verified_by` ASC) VISIBLE,
+  INDEX `fk_payments_registrations_idx` (`registration_id` ASC),
+  INDEX `fk_payments_verifier_idx` (`verified_by` ASC),
   CONSTRAINT `fk_payments_registrations`
     FOREIGN KEY (`registration_id`)
     REFERENCES `eventsapp`.`registrations` (`id`)
