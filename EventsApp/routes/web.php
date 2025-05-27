@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\TestConnectionController;
 
 // Dashboard
 Route::get('/', function () {
@@ -20,5 +22,6 @@ Route::prefix('components')->group(function () {
     // Other component routes
 });
 
+Route::get('/test-connection', [TestConnectionController::class, 'test']);
 // Authentication routes
 Auth::routes();

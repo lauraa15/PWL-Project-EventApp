@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redirect; 
 use Illuminate\Http\RedirectResponse; 
 use Illuminate\View\View;
-use function back;
 
 class EventController extends Controller
 {

@@ -10,10 +10,15 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Database connection
-db.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL database');
-});
+db.getConnection()
+  .then(conn => {
+    console.log('Connected to MySQL database');
+    conn.release();
+  })
+  .catch(err => {
+    console.error('Database connection failed:', err);
+    process.exit(1);
+  });
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -34,3 +39,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const testRoutes = require('./routes/testRoutes');
+app.use('/api/test', testRoutes); // ✅ recommended
