@@ -1,5 +1,4 @@
 -- MySQL Workbench Forward Engineering
--- ini ngikutin dari kotretan_db5v2 yah
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -17,12 +16,25 @@ CREATE SCHEMA IF NOT EXISTS `eventsapp` DEFAULT CHARACTER SET utf8mb4 COLLATE ut
 USE `eventsapp` ;
 
 -- -----------------------------------------------------
+-- Table `eventsapp`.`event_types`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `eventsapp`.`event_types` ;
+
+CREATE TABLE IF NOT EXISTS `eventsapp`.`event_types` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `type` VARCHAR(50) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `eventsapp`.`events`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `eventsapp`.`events` ;
 
 CREATE TABLE IF NOT EXISTS `eventsapp`.`events` (
   `id` INT NOT NULL AUTO_INCREMENT,
+  `event_type_id` INT NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT NULL DEFAULT NULL,
   `start_date` DATETIME NOT NULL,
@@ -39,7 +51,13 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`events` (
   `is_active` TINYINT NOT NULL DEFAULT 1,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`))
+  PRIMARY KEY (`id`),
+  INDEX `event_to_types_id_idx` (`event_type_id` ASC),
+  CONSTRAINT `event_to_types_id`
+    FOREIGN KEY (`event_type_id`)
+    REFERENCES `eventsapp`.`event_types` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
@@ -260,6 +278,41 @@ CREATE TABLE IF NOT EXISTS `eventsapp`.`session_registrations` (
 ENGINE = InnoDB;
 
 
+-- -----------------------------------------------------
+-- Table `eventsapp`.`event_genres`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `eventsapp`.`event_genres` ;
+
+CREATE TABLE IF NOT EXISTS `eventsapp`.`event_genres` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `genre` VARCHAR(50) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `eventsapp`.`event_genre_pivot`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `eventsapp`.`event_genre_pivot` ;
+
+CREATE TABLE IF NOT EXISTS `eventsapp`.`event_genre_pivot` (
+  `event_id` INT NOT NULL,
+  `genre_id` INT NOT NULL,
+  PRIMARY KEY (`event_id`, `genre_id`),
+  INDEX `genre_to_events_in_pivot_idx` (`genre_id` ASC),
+  CONSTRAINT `events_to_genres_in_pivot`
+    FOREIGN KEY (`event_id`)
+    REFERENCES `eventsapp`.`events` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `genre_to_events_in_pivot`
+    FOREIGN KEY (`genre_id`)
+    REFERENCES `eventsapp`.`event_genres` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
@@ -273,3 +326,39 @@ INSERT INTO `eventsapp`.`roles` (`name`, `description`) VALUES
 ('organizer', 'Panitia Pelaksana Kegiatan'),
 ('member', 'Member/Peserta');
 -- end attached script 'script'
+-- begin attached script 'script1'
+-- -----------------------------------------------------
+-- Insert Default Event Types
+-- -----------------------------------------------------
+INSERT INTO `eventsapp`.`event_types` (`type`) VALUES
+('Conference'),
+('Workshop'),
+('Exhibition'),
+('Seminar'),
+('Webinar'),
+('Festival'),
+('Talkshow'),
+('Competition'),
+('Networking'),
+('Meet-up'),
+('Launching');
+
+-- end attached script 'script1'
+-- begin attached script 'script2'
+-- -----------------------------------------------------
+-- Insert Default Event Genres
+-- -----------------------------------------------------
+INSERT INTO `eventsapp`.`event_genres` (`genre`) VALUES
+('Music'),
+('Fashion'),
+('Technology'),
+('Culinary'),
+('Art'),
+('Business'),
+('Gaming'),
+('Health'),
+('Education'),
+('Sports'),
+('Photography');
+
+-- end attached script 'script2'
