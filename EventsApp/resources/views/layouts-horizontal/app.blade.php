@@ -4,42 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard - Mazer Admin Dashboard')</title>
+    <title>@yield('title', 'Mazer Admin Dashboard')</title>
     
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">
-
-    <!-- CSS -->
+    <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">    
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/app-dark.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/iconly.css') }}">
-
+    
     @stack('styles')
 </head>
 
 <body>
     <script src="{{ asset('assets/static/js/initTheme.js') }}"></script>
     <div id="app">
-        <!-- Sidebar -->
-        @include('layouts.partials.sidebar')
-
-        <div id="main">
-            <!-- Navbar -->
-            @include('layouts.partials.navbar')
-
-            <!-- Main Content -->
+        <div id="main" class="layout-horizontal">
+            @include('layouts-horizontal.partials.header')
+            
             @yield('content')
-
-            <!-- Footer -->
-            @include('layouts.partials.footer')
+            
+            @include('layouts-horizontal.partials.footer')
         </div>
     </div>
-
-    <!-- Scripts -->
+    
     <script src="{{ asset('assets/static/js/components/dark.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/horizontal-layout.js') }}"></script>
     <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/compiled/js/app.js') }}"></script>
-
+    
     @stack('scripts')
 </body>
+
 </html>
