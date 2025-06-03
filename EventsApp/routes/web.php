@@ -39,6 +39,21 @@ Route::get('/dashboard2', function () {
     return view('dashboard2');
 })->name('dashboard2');
 
+Route::get('/admin/dashboard', function () {
+    return view('roles.admin.dashboard');
+})->name('admin.dashboard');
+Route::get('/finance/dashboard', function () {
+    return view('roles.finance.dashboard');
+})->name('finance.dashboard');
+Route::get('/member/dashboard', function () {
+    return view('roles.member.dashboard');
+})->name('member.dashboard');
+Route::get('/organizer/dashboard', function () {
+    return view('roles.organizer.dashboard');
+})->name('organizer.dashboard');
+
+
+
 // Components
 Route::prefix('components')->group(function () {
     Route::get('accordion', function () {
