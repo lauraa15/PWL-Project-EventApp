@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\TestConnectionController;
 use Illuminate\Support\Facades\DB;
 
+Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
+
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login');
+
 Route::get('/db-test', function() {
     try {
         DB::connection()->getPdo();
@@ -35,6 +41,6 @@ Route::prefix('components')->group(function () {
     // Other component routes
 });
 
-Route::get('/test-connection', [TestConnectionController::class, 'test']);
+// Route::get('/test-connection', [TestConnectionController::class, 'test']);
 // Authentication routes
 // Auth::routes();

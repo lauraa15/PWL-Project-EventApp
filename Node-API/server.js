@@ -1,6 +1,25 @@
+require('dotenv').config();
 
 const axios = require('axios');
+const express = require('express');
+const cors = require('cors');
+const db = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const registrationRoutes = require('./routes/registrationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const certificateRoutes = require('./routes/certificateRoutes');
+const testRoutes = require('./routes/testRoutes');
 
+const app = express();
+
+// ✅ Middleware (harus ditulis SEBELUM routes)
+app.use(express.json()); // <=== penting agar bisa baca JSON
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: 'http://localhost:8000' }));
+
+// ✅ Cek koneksi ke Laravel (opsional)
 axios.get('http://localhost:8000/test-connection')
   .then(response => {
     console.log('Laravel says:', response.data);
@@ -8,19 +27,8 @@ axios.get('http://localhost:8000/test-connection')
   .catch(error => {
     console.error('Cannot connect to Laravel API:', error.message);
   });
-  
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const db = require('./config/db');
 
-const app = express();
-
-app.use(cors({ origin: 'http://localhost:8000' }));
-// app.use(cors());
-app.use(bodyParser.json());
-
-
+// ✅ Cek koneksi DB
 db.getConnection()
   .then(conn => {
     console.log('Connected to MySQL database');
@@ -31,24 +39,16 @@ db.getConnection()
     process.exit(1);
   });
 
-
-const authRoutes = require('./routes/authRoutes');
-const eventRoutes = require('./routes/eventRoutes');
-const registrationRoutes = require('./routes/registrationRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
-const certificateRoutes = require('./routes/certificateRoutes');
-const testRoutes = require('./routes/testRoutes'); 
-
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/attendances', attendanceRoutes);
 app.use('/api/certificates', certificateRoutes);
-app.use('/api/test', testRoutes); 
+app.use('/api/test', testRoutes);
 
-
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
