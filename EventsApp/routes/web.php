@@ -1,7 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\TestConnectionController;
+use Illuminate\Support\Facades\DB;
 
+Route::get('/db-test', function() {
+    try {
+        DB::connection()->getPdo();
+        return "Database connected!";
+    } catch (\Exception $e) {
+        return "Could not connect to the database. Error: " . $e->getMessage();
+    }
+});
 // Dashboard
 Route::get('/', function () {
     return view('dashboard');
@@ -20,5 +31,6 @@ Route::prefix('components')->group(function () {
     // Other component routes
 });
 
+Route::get('/test-connection', [TestConnectionController::class, 'test']);
 // Authentication routes
-Auth::routes();
+// Auth::routes();
