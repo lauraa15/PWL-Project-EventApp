@@ -17,7 +17,14 @@ const app = express();
 // ✅ Middleware (harus ditulis SEBELUM routes)
 app.use(express.json()); // <=== penting agar bisa baca JSON
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: 'http://localhost:8000' }));
+// app.use(cors()); 
+// app.use(cors({ origin: 'http://localhost:8000' }));
+app.use(cors({
+  origin: ['http://localhost:8000', 'http://127.0.0.1:8000'], // list origin yang diizinkan
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // ✅ Cek koneksi ke Laravel (opsional)
 axios.get('http://localhost:8000/test-connection')

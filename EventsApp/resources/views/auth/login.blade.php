@@ -80,30 +80,51 @@
     </form>
 
     <script>
-    document.getElementById('login-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const email = e.target.email.value;
-        const password = e.target.password.value;
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-        const response = await fetch('http://localhost:3000/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const token = result.token;
+                    localStorage.setItem('token', token);
+
+                    // 🔍 Decode token untuk dapatkan role_id
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const roleId = payload.role_id;
+
+                    // 🧭 Redirect berdasarkan role_id
+                    if (roleId === 1) {
+                        window.location.href = '/admin/dashboard';
+                    } else if (roleId === 2) {
+                        window.location.href = '/finance/dashboard';
+                    } else if (roleId === 3) {
+                        window.location.href = '/organizer/dashboard';
+                    } else if (roleId === 4) {
+                        window.location.href = '/member/dashboard';
+                    } else {
+                        alert('Role tidak dikenali.');
+                    }
+
+                } else {
+                    alert(result.message || 'Login gagal.');
+                }
+            } catch (err) {
+                console.error('Login Error:', err);
+                alert('Terjadi kesalahan jaringan.');
+            }
         });
+        </script>
 
-        const result = await response.json();
-
-        if (response.ok) {
-            // Simpan token JWT di localStorage / cookie
-            localStorage.setItem('token', result.token);
-
-            // Redirect ke dashboard Laravel
-            window.location.href = '/dashboard';
-        } else {
-            alert(result.message || 'Login gagal.');
-        }
-    });
-    </script>
 </div>
 @endsection

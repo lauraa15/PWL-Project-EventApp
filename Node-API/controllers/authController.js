@@ -4,13 +4,31 @@ const db = require('../config/db');
 const authService = require('../services/authService');
 
 exports.register = async (req, res) => {
-  const { role_id, name, email, password, phone_number } = req.body;
+  let { role_id, name, email, password, phone_number } = req.body;
 
   if (!role_id || !name || !email || !password) {
     return res.status(400).json({ message: 'Semua field wajib diisi.' });
   }
 
+  // Validasi sederhana
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ message: 'Format email tidak valid.' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password minimal 6 karakter.' });
+  }
+
+  // Normalisasi email
+  email = email.toLowerCase();
+
   try {
+    // Cek role_id valid
+    const [roles] = await db.query('SELECT id FROM roles WHERE id = ?', [role_id]);
+    if (roles.length === 0) {
+      return res.status(400).json({ message: 'Role tidak valid.' });
+    }
+
+    // Cek email sudah terdaftar
     const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser.length > 0) {
       return res.status(409).json({ message: 'Email sudah terdaftar.' });
@@ -18,17 +36,18 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.query(
+    const [result] = await db.query(
       'INSERT INTO users (role_id, name, email, password, phone_number) VALUES (?, ?, ?, ?, ?)',
       [role_id, name, email, hashedPassword, phone_number || null]
     );
 
-    return res.status(201).json({ message: 'Pendaftaran berhasil!' });
+    return res.status(201).json({ message: 'Pendaftaran berhasil!', userId: result.insertId });
   } catch (error) {
     console.error('Register Error:', error);
     return res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
   }
 };
+
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -50,12 +69,12 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Email atau password salah.' });
     }
 
-    // Buat token JWT, sesuaikan secret dan expirasi
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role_id: user.role_id },
-      process.env.JWT_SECRET || 'secretkey', // simpan secret di .env nanti ya
-      { expiresIn: '1h' }
-    );
+   const token = jwt.sign({
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            role_id: user.role_id,
+                            }, 'SECRET_KEY', { expiresIn: '1d' });
 
     return res.json({
       message: 'Login berhasil',

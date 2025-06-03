@@ -5,8 +5,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\TestConnectionController;
 use Illuminate\Support\Facades\DB;
 
-Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 
+Route::view('/register', 'auth.register')->name('register');
+
+Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
+Route::middleware(['web', \App\Http\Middleware\EnsureTokenExists::class])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -22,7 +29,7 @@ Route::get('/db-test', function() {
 // Dashboard
 Route::get('/', function () {
     return view('welcome');
-})->name('welcome');
+})->name('welcom');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -41,6 +48,6 @@ Route::prefix('components')->group(function () {
     // Other component routes
 });
 
-// Route::get('/test-connection', [TestConnectionController::class, 'test']);
+Route::get('/test-connection', [TestConnectionController::class, 'test']);
 // Authentication routes
 // Auth::routes();
