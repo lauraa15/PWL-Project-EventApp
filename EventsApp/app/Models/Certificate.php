@@ -16,10 +16,12 @@ class Certificate extends Model
      */
     protected $fillable = [
         'registration_id',
-        'certificate_file',
+        'file_path',
         'certificate_code',
         'issued_by',
         'issued_at',
+        'created_at',
+        'updated_at',
     ];
 
     /**

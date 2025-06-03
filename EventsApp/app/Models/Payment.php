@@ -17,11 +17,14 @@ class Payment extends Model
     protected $fillable = [
         'registration_id',
         'amount',
-        'payment_proof',
         'payment_date',
         'verified_by',
         'verification_date',
         'status',
+        'notes',
+        'created_at',
+        'updated_at',
+        
     ];
 
     /**

@@ -15,12 +15,16 @@ Route::get('/db-test', function() {
 });
 // Dashboard
 Route::get('/', function () {
-    return view('dashboard');
-})->name('dashboard');
+    return view('welcome');
+})->name('welcome');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+Route::get('/dashboard2', function () {
+    return view('dashboard2');
+})->name('dashboard2');
 
 // Components
 Route::prefix('components')->group(function () {

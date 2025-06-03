@@ -15,18 +15,23 @@ class Event extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'created_by',
         'name',
         'description',
         'event_date',
         'start_time',
         'end_time',
         'location',
-        'speaker',
         'poster_image',
+        'event_speaker',
         'registration_fee',
         'max_participants',
+        'current_participants',
+        'registration_open_date',
+        'registration_close_date',
         'status',
-        'created_by',
+        'created_at',
+        'updated_at',
     ];
 
     /**
