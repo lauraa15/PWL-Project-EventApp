@@ -28,5 +28,29 @@
 @push('scripts')
 <script src="{{ asset('assets/extensions/apexcharts/apexcharts.min.js') }}"></script>
 <script src="{{ asset('assets/static/js/pages/dashboard.js') }}"></script>
+<script>
+    // Ambil token dari localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            // Kalau ga ada token, redirect ke login
+            window.location.href = '/login';
+        } else {
+            try {
+                // Decode payload JWT
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const roleId = payload.role_id;
+
+                if (roleId != 4) {
+                    // Bukan admin
+                    alert("Akses ditolak!");
+                    window.location.href = '/login';
+                }
+            } catch (e) {
+                console.error('JWT Decode error:', e);
+                window.location.href = '/login';
+            }
+        }
+    </script>
 @endpush
 @endsection

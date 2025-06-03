@@ -29,7 +29,8 @@ Route::get('/db-test', function() {
 // Dashboard
 Route::get('/', function () {
     return view('welcome');
-})->name('welcom');
+})->name('welcome');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');

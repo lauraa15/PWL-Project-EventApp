@@ -430,57 +430,28 @@
 @endsection
 
 @section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add new ticket type
-            document.getElementById('addTicketType').addEventListener('click', function() {
-                const container = document.getElementById('ticketTypesContainer');
-                const newTicketType = document.createElement('div');
-                newTicketType.className = 'ticket-tier mb-3';
-                newTicketType.innerHTML = `
-                    <div class="d-flex justify-content-between mb-2">
-                        <h6>New Ticket Tier</h6>
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-ticket-type">Remove</button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Ticket Name *</label>
-                            <input type="text" class="form-control" required>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Price ($) *</label>
-                            <input type="number" class="form-control" min="0" required>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Quantity Available *</label>
-                            <input type="number" class="form-control" min="1" required>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Sales End Date</label>
-                            <input type="datetime-local" class="form-control">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" rows="2"></textarea>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(newTicketType);
-            });
+<script>
+// Ambil token dari localStorage
+    const token = localStorage.getItem('token');
 
-            // Remove ticket type
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-ticket-type')) {
-                    e.target.closest('.ticket-tier').remove();
-                }
-            });
+    if (!token) {
+        // Kalau ga ada token, redirect ke login
+        window.location.href = '/login';
+    } else {
+        try {
+            // Decode payload JWT
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const roleId = payload.role_id;
 
-            // Form validation would go here
-            // const form = document.querySelector('#createEventModal form');
-            // form.addEventListener('submit', function(e) {
-            //     e.preventDefault();
-            //     // Validate form and submit via AJAX
-            // });
-        });
-    </script>
+            if (roleId != 3) {
+                // Bukan admin
+                alert("Akses ditolak!");
+                window.location.href = '/login';
+            }
+        } catch (e) {
+            console.error('JWT Decode error:', e);
+            window.location.href = '/login';
+        }
+    }
+</script>
 @endsection
