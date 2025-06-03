@@ -1,6 +1,34 @@
 <?php
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Define env() helper if it does not exist
+if (!function_exists('env')) {
+    function env($key, $default = null) {
+        $value = getenv($key);
+        if ($value === false) {
+            return $default;
+        }
+        switch (strtolower($value)) {
+            case 'true':
+            case '(true)':
+                return true;
+            case 'false':
+            case '(false)':
+                return false;
+            case 'empty':
+            case '(empty)':
+                return '';
+            case 'null':
+            case '(null)':
+                return null;
+        }
+        return $value;
+    }
+}
+
 return [
+    'api_base_url' => env('API_BASE_URL', 'http://localhost:3000/api'),
 
     /*
     |--------------------------------------------------------------------------
