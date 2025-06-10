@@ -1,9 +1,13 @@
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
 <div id="sidebar">
     <div class="sidebar-wrapper active">
         <div class="sidebar-header position-relative">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="logo">
-                    <a href="{{ url('/') }}"><img src="{{ asset('assets/compiled/svg/logo.svg') }}" alt="Logo" srcset=""></a>
+                    <a href="{{ url('/') }}"><img height="70" src="{{ asset('assets/compiled/png/eventee2.png') }}" alt="Logo" srcset=""></a>
                 </div>
                 <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                     <!-- Theme toggle SVG -->
@@ -27,6 +31,12 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+                <li class="sidebar-item {{ request()->is('admin/manage-user') ? 'active' : '' }}">
+                    <a href="{{ url('admin/manage-user') }}" class='sidebar-link'>
+                        <i class="bi bi-person-fill"></i>
+                        <span>User Data</span>
+                    </a>
+                </li>
                 
                 <!-- Components Menu -->
                 <li class="sidebar-item has-sub">
@@ -41,27 +51,53 @@
                         <!-- Other component links -->
                     </ul>
                 </li>
-                
-                <!-- Authentication Links -->
-                @guest
-                <li class="sidebar-item">
-                    <a href="{{ route('login') }}" class='sidebar-link'>
+         
+                <li class="sidebar-item {{ request()->is('/') ? 'active' : '' }}">
+                    <a href="#" class='sidebar-link' id="logout-button">
                         <i class="bi bi-person-badge-fill"></i>
-                        <span>Login</span>
-                    </a>
-                </li>
-                @else
-                <li class="sidebar-item">
-                    <a href="{{ route('logout') }}" class='sidebar-link' onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="bi bi-power"></i>
                         <span>Logout</span>
                     </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
                 </li>
-                @endguest
             </ul>
         </div>
     </div>
 </div>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+    }
+</script>
+<script>
+    document.getElementById('logout-button').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: 'Yakin ingin logout?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, logout',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Hapus token dari localStorage
+                localStorage.removeItem('token');
+
+                // Tampilkan notifikasi sukses
+                Swal.fire({
+                    title: 'Berhasil logout!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                // Redirect setelah 1.5 detik
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            }
+        });
+    });
+</script>

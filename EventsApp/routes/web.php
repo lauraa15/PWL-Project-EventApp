@@ -54,6 +54,11 @@ Route::get('/organizer/dashboard', function () {
 })->name('organizer.dashboard');
 
 
+Route::get('/admin/manage-user', function () {
+    return view('roles.admin.manage-user');
+})->name('admin.manage-user');
+
+
 
 // Components
 Route::prefix('components')->group(function () {

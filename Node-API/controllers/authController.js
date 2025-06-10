@@ -4,13 +4,12 @@ const db = require('../config/db');
 const authService = require('../services/authService');
 
 exports.register = async (req, res) => {
-  let { role_id, name, email, password, phone_number } = req.body;
+  let { name, email, password, phone_number } = req.body;
 
-  if (!role_id || !name || !email || !password) {
+  if (!name || !email || !password || !phone_number) {
     return res.status(400).json({ message: 'Semua field wajib diisi.' });
   }
 
-  // Validasi sederhana
   if (!/\S+@\S+\.\S+/.test(email)) {
     return res.status(400).json({ message: 'Format email tidak valid.' });
   }
@@ -18,17 +17,10 @@ exports.register = async (req, res) => {
     return res.status(400).json({ message: 'Password minimal 6 karakter.' });
   }
 
-  // Normalisasi email
   email = email.toLowerCase();
+  const role_id = 4; // Default ke Member
 
   try {
-    // Cek role_id valid
-    const [roles] = await db.query('SELECT id FROM roles WHERE id = ?', [role_id]);
-    if (roles.length === 0) {
-      return res.status(400).json({ message: 'Role tidak valid.' });
-    }
-
-    // Cek email sudah terdaftar
     const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser.length > 0) {
       return res.status(409).json({ message: 'Email sudah terdaftar.' });
@@ -38,7 +30,7 @@ exports.register = async (req, res) => {
 
     const [result] = await db.query(
       'INSERT INTO users (role_id, name, email, password, phone_number) VALUES (?, ?, ?, ?, ?)',
-      [role_id, name, email, hashedPassword, phone_number || null]
+      [role_id, name, email, hashedPassword, phone_number]
     );
 
     return res.status(201).json({ message: 'Pendaftaran berhasil!', userId: result.insertId });
@@ -47,6 +39,7 @@ exports.register = async (req, res) => {
     return res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
   }
 };
+
 
 
 exports.login = async (req, res) => {

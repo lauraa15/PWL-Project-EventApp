@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Register | Event App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white shadow-lg rounded-2xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden">
@@ -59,7 +61,11 @@
             const password_confirmation = e.target.password_confirmation.value;
 
             if (password !== password_confirmation) {
-                alert('Password dan konfirmasi tidak cocok.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Oops...',
+                    text: 'Password dan konfirmasi tidak cocok!'
+                });
                 return;
             }
 
@@ -67,22 +73,38 @@
                 const response = await fetch('http://localhost:3000/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, phone_number, password })
+                    body: JSON.stringify({ name, email, phone_number, password }),
+                    mode: 'cors'
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Registrasi berhasil! Silakan login.');
-                    window.location.href = '/login';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Registrasi berhasil. Silakan login.',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.href = '/login';
+                    });
                 } else {
-                    alert(result.message || 'Registrasi gagal.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: result.message || 'Registrasi gagal.'
+                    });
                 }
             } catch (err) {
                 console.error('Register Error:', err);
-                alert('Terjadi kesalahan jaringan.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan!',
+                    text: 'Gagal menghubungi server.'
+                });
             }
-        });
+            });
     </script>
+    
 </body>
 </html>
