@@ -1,7 +1,9 @@
+require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const authService = require('../services/authService');
+
 
 exports.register = async (req, res) => {
   let { name, email, password, phone_number } = req.body;
@@ -43,31 +45,33 @@ exports.register = async (req, res) => {
 
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, phone, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email dan password wajib diisi.' });
+  if ((!email && !phone) || !password) {
+    return res.status(400).json({ message: 'Email atau Nomor HP dan password wajib diisi.' });
   }
 
   try {
-    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    const field = email ? 'email' : 'phone_number';
+    const identifier = email || phone;
+
+    const [rows] = await db.query(`SELECT * FROM users WHERE ${field} = ?`, [identifier]);
     if (rows.length === 0) {
-      return res.status(401).json({ message: 'Email atau password salah.' });
+      return res.status(401).json({ message: 'Email/Nomor HP atau password salah.' });
     }
 
     const user = rows[0];
-
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: 'Email atau password salah.' });
+      return res.status(401).json({ message: 'Email/Nomor HP atau password salah.' });
     }
 
-   const token = jwt.sign({
-                            id: user.id,
-                            name: user.name,
-                            email: user.email,
-                            role_id: user.role_id,
-                            }, 'SECRET_KEY', { expiresIn: '1d' });
+    const token = jwt.sign({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role_id: user.role_id,
+    }, process.env.JWT_SECRET || 'SECRET_KEY', { expiresIn: '1d' });
 
     return res.json({
       message: 'Login berhasil',
