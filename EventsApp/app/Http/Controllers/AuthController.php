@@ -18,13 +18,26 @@ class AuthController extends Controller
             ]);
             $data = json_decode($response->getBody(), true);
             
-            // Simpan token JWT ke session Laravel
-            session(['jwt_token' => $data['token']]);
+            if (!isset($data['token']) || !isset($data['user'])) {
+                return back()->withErrors(['login' => 'Invalid response from authentication server']);
+            }
             
-            // Simpan info user lain kalau perlu
-            // session(['user' => $data['user']]);
+            // Store JWT token and user data in session
+            session([
+                'jwt_token' => $data['token'],
+                'user' => $data['user']
+            ]);
             
-            return redirect('/dashboard');
+            // Get role from user data
+            $roleMap = [
+                1 => 'admin.dashboard',
+                2 => 'finance.dashboard',
+                3 => 'organizer.dashboard',
+                4 => 'member.dashboard'
+            ];
+
+            $route = $roleMap[$data['user']['role_id']] ?? 'dashboard';
+            return redirect()->route($route);
         } catch (\Exception $e) {
             return back()->withErrors(['login' => 'Login gagal, cek email dan password.']);
         }

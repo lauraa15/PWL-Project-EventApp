@@ -9,10 +9,24 @@ use Illuminate\Support\Facades\DB;
 Route::view('/register', 'auth.register')->name('register');
 
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
-Route::middleware(['web', \App\Http\Middleware\EnsureTokenExists::class])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+// Role-specific dashboards with proper middleware
+// Role-specific dashboard routes with JWT middleware
+Route::middleware(['jwt'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('roles.admin.dashboard');
+    })->middleware('jwt:admin')->name('admin.dashboard');
+    
+    Route::get('/finance/dashboard', function () {
+        return view('roles.finance.dashboard');
+    })->middleware('jwt:finance')->name('finance.dashboard');
+    
+    Route::get('/organizer/dashboard', function () {
+        return view('roles.organizer.dashboard');
+    })->middleware('jwt:organizer')->name('organizer.dashboard');
+    
+    Route::get('/member/dashboard', function () {
+        return view('roles.member.dashboard');
+    })->middleware('jwt:member')->name('member.dashboard');
 });
 Route::get('/login', function () {
     return view('auth.login');
@@ -70,7 +84,7 @@ Route::prefix('components')->group(function () {
 Route::get('/test-connection', [TestConnectionController::class, 'test']);
 
 // Organizer Routes
-Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
+Route::middleware(['jwt:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('dashboard', function () {
         return view('organizer.dashboard');
     })->name('dashboard');
