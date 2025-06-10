@@ -26,7 +26,7 @@
                 <li class="sidebar-title">Menu</li>
                 
                 <li class="sidebar-item {{ request()->is('/') ? 'active' : '' }}">
-                    <a href="{{ url('/') }}" class='sidebar-link'>
+                    <a href="#" class='sidebar-link'>
                         <i class="bi bi-grid-fill"></i>
                         <span>Dashboard</span>
                     </a>

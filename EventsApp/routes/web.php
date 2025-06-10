@@ -58,8 +58,6 @@ Route::get('/admin/manage-user', function () {
     return view('roles.admin.manage-user');
 })->name('admin.manage-user');
 
-
-
 // Components
 Route::prefix('components')->group(function () {
     Route::get('accordion', function () {
@@ -70,5 +68,32 @@ Route::prefix('components')->group(function () {
 });
 
 Route::get('/test-connection', [TestConnectionController::class, 'test']);
+
+// Organizer Routes
+Route::middleware(['auth', 'role:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
+    Route::get('dashboard', function () {
+        return view('organizer.dashboard');
+    })->name('dashboard');
+
+    // Events Management
+    Route::get('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'showScanQR'])->name('events.scan-qr');
+    Route::post('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'scanQR']);
+    
+    // Certificate Management
+    Route::get('events/{event}/certificates', [App\Http\Controllers\Organizer\EventController::class, 'showCertificates'])->name('events.certificates');
+    Route::post('events/{event}/certificates/upload', [App\Http\Controllers\Organizer\EventController::class, 'uploadCertificate'])->name('events.certificates.upload');
+    Route::post('events/{event}/certificates/bulk-upload', [App\Http\Controllers\Organizer\EventController::class, 'bulkUploadCertificates'])->name('events.certificates.bulk-upload');
+
+    // Event Sessions
+    Route::get('events/{event}/sessions', [App\Http\Controllers\Organizer\EventSessionController::class, 'index'])->name('events.sessions.index');
+    Route::post('events/{event}/sessions', [App\Http\Controllers\Organizer\EventSessionController::class, 'store'])->name('events.sessions.store');
+    Route::put('events/{event}/sessions/{session}', [App\Http\Controllers\Organizer\EventSessionController::class, 'update'])->name('events.sessions.update');
+    Route::delete('events/{event}/sessions/{session}', [App\Http\Controllers\Organizer\EventSessionController::class, 'destroy'])->name('events.sessions.destroy');
+
+    // Resource Routes
+    Route::resource('events', App\Http\Controllers\Organizer\EventController::class);
+    Route::resource('certificates', App\Http\Controllers\Organizer\CertificateController::class)->only(['destroy']);
+});
+
 // Authentication routes
 // Auth::routes();

@@ -15,23 +15,22 @@ class Event extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'created_by',
+        'event_type_id',
         'name',
         'description',
-        'event_date',
-        'start_time',
-        'end_time',
+        'start_date',
+        'end_date',
         'location',
         'poster_image',
-        'event_speaker',
         'registration_fee',
+        'registration_type',
         'max_participants',
         'current_participants',
         'registration_open_date',
         'registration_close_date',
-        'status',
-        'created_at',
-        'updated_at',
+        'certificate_type',
+        'is_active',
+        'created_by'
     ];
 
     /**
@@ -40,9 +39,14 @@ class Event extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'event_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'registration_fee' => 'decimal:2',
         'max_participants' => 'integer',
+        'current_participants' => 'integer',
+        'registration_open_date' => 'date',
+        'registration_close_date' => 'date',
+        'is_active' => 'boolean'
     ];
 
     /**
@@ -59,6 +63,14 @@ class Event extends Model
     public function registrations()
     {
         return $this->hasMany(Registration::class);
+    }
+
+    /**
+     * Get the sessions for this event.
+     */
+    public function sessions()
+    {
+        return $this->hasMany(EventSession::class);
     }
 
     /**
