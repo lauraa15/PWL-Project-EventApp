@@ -1,4 +1,4 @@
-@extends('layouts-horizontal.app')
+@extends('layouts-horizontal.app-login')
 
 @section('title', 'EventHub - Discover Amazing Events')
 
