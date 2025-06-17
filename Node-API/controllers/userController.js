@@ -16,3 +16,18 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil data pengguna.' });
   }
 };
+
+const updateUser = async (req, res) => {
+    const userId = req.params.id;
+    const { name, email, phone_number, role_name } = req.body;
+
+    const targetUser = await db.users.findByPk(userId, {
+        include: ['role']
+    });
+
+    if (!['finance', 'organizer'].includes(targetUser.role.role_name.toLowerCase())) {
+        return res.status(403).json({ message: 'Hanya user dengan role Finance atau Organizer yang bisa diubah.' });
+    }
+
+    // Lanjutkan update
+};
