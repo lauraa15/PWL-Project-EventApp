@@ -2,6 +2,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
+
 <div id="sidebar">
     <div class="sidebar-wrapper active">
         <div class="sidebar-header position-relative">
@@ -24,9 +25,8 @@
         <div class="sidebar-menu">
             <ul class="menu">
                 <li class="sidebar-title">Menu</li>
-                
                 <li class="sidebar-item {{ request()->is('/') ? 'active' : '' }}">
-                    <a href="#" class='sidebar-link'>
+                    <a id="dashboard-link" href="#" class='sidebar-link'>
                         <i class="bi bi-grid-fill"></i>
                         <span>Dashboard</span>
                     </a>
@@ -101,3 +101,29 @@
         });
     });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        const dashboardLink = document.getElementById('dashboard-link');
+
+        if (token && dashboardLink) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const roleId = payload.role_id;
+
+                let redirectUrl = '/dashboard';
+                switch (roleId) {
+                    case 1: redirectUrl = '/admin/dashboard'; break;
+                    case 2: redirectUrl = '/finance/dashboard'; break;
+                    case 3: redirectUrl = '/organizer/dashboard'; break;
+                    case 4: redirectUrl = '/member/dashboard'; break;
+                }
+
+                dashboardLink.setAttribute('href', redirectUrl);
+            } catch (error) {
+                console.error('Invalid token format:', error);
+            }
+        }
+    });
+</script>
+
