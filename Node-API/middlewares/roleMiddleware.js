@@ -1,4 +1,4 @@
-module.exports = function (req, res, next) {
+const roleMiddleware = (req, res, next) => {
     const allowedRoles = ['finance', 'organizer'];
     const targetRole = req.body.role_name?.toLowerCase();
 
@@ -10,3 +10,5 @@ module.exports = function (req, res, next) {
 
     next();
 };
+
+module.exports = roleMiddleware;

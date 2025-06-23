@@ -2,17 +2,18 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controllers/userController');
-const { verifyToken } = require('../middlewares/authMiddleware'); // ✅ ini benar
-const roleMiddleware = require('../middlewares/roleMiddleware'); // ✅ function langsung
+const { verifyToken } = require('../middlewares/authMiddleware'); // ✅
+const roleMiddleware = require('../middlewares/roleMiddleware');  // ✅ function
 
-router.use(verifyToken); // ✅ middleware global
+// ✅ HARUS TANPA KURUNG KURAWAL
+router.use(verifyToken);
 
-// CRUD user hanya untuk role 'finance' dan 'organizer'
+router.get('/', userController.getAllUsers);
+// CRUD user khusus finance dan organizer
 router.post('/', roleMiddleware, userController.createUser);
 router.put('/:id', roleMiddleware, userController.updateUser);
 router.delete('/:id', roleMiddleware, userController.deleteUser);
 
-// Get all users — semua role bisa asal sudah login
-router.get('/users', userController.getAllUsers);
+// Semua user bisa akses
 
 module.exports = router;

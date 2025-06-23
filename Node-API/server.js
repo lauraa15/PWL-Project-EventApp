@@ -25,7 +25,7 @@ app.use(cors({
 }));
 app.use(express.json()); // <=== penting agar bisa baca JSON
 app.use(express.urlencoded({ extended: true }));
-app.use('/api', userRoutes);
+app.use('/api/users', userRoutes);
 // app.use(cors()); 
 // app.use(cors({ origin: 'http://localhost:8000' }));
 
