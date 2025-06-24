@@ -19,7 +19,7 @@ const app = express();
 // ✅ Middleware (harus ditulis SEBELUM routes)
 app.use(cors({
   origin: ['http://localhost:8000', 'http://127.0.0.1:8000'], // list origin yang diizinkan
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));

@@ -12,3 +12,16 @@ const roleMiddleware = (req, res, next) => {
 };
 
 module.exports = roleMiddleware;
+
+// module.exports = (req, res, next) => {
+//   const requesterRoleId = req.user?.role_id;
+
+//   // Misal: hanya role_id 1 (Admin) yang boleh menambah user
+//   if (requesterRoleId !== 1) {
+//     return res.status(403).json({
+//       message: 'Hanya admin yang diizinkan melakukan aksi ini.'
+//     });
+//   }
+
+//   next();
+// };
