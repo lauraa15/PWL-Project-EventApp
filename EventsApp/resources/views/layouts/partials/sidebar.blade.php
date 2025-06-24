@@ -31,7 +31,7 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{ request()->is('admin/manage-user') ? 'active' : '' }}">
+                <li id="menu-user-data" class="sidebar-item {{ request()->is('admin/manage-user') ? 'active' : '' }}">
                     <a href="{{ url('admin/manage-user') }}" class='sidebar-link'>
                         <i class="bi bi-person-fill"></i>
                         <span>User Data</span>
@@ -98,12 +98,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('token');
         const dashboardLink = document.getElementById('dashboard-link');
+        const userDataMenu = document.getElementById('menu-user-data');
 
-        if (token && dashboardLink) {
+        if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const roleId = payload.role_id;
 
+                // Atur redirect link dashboard
                 let redirectUrl = '/dashboard';
                 switch (roleId) {
                     case 1: redirectUrl = '/admin/dashboard'; break;
@@ -112,11 +114,18 @@
                     case 4: redirectUrl = '/member/dashboard'; break;
                 }
 
-                dashboardLink.setAttribute('href', redirectUrl);
+                if (dashboardLink) dashboardLink.setAttribute('href', redirectUrl);
+
+                // Tampilkan menu "User Data" hanya jika role = admin (1)
+                if (userDataMenu && roleId !== 1) {
+                    userDataMenu.style.display = 'none';
+                }
+
             } catch (error) {
                 console.error('Invalid token format:', error);
             }
         }
     });
 </script>
+
 
