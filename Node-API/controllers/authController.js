@@ -47,45 +47,69 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, phone, password } = req.body;
 
+  // Cek field wajib
   if ((!email && !phone) || !password) {
-    return res.status(400).json({ message: 'Email atau Nomor HP dan password wajib diisi.' });
+    return res.status(400).json({
+      success: false,
+      message: 'Email atau Nomor HP dan password wajib diisi.'
+    });
   }
 
   try {
+    // Pilih field untuk login
     const field = email ? 'email' : 'phone_number';
     const identifier = email || phone;
 
+    // Cari user berdasarkan email atau no hp
     const [rows] = await db.query(`SELECT * FROM users WHERE ${field} = ?`, [identifier]);
     if (rows.length === 0) {
-      return res.status(401).json({ message: 'Email/Nomor HP atau password salah.' });
+      return res.status(401).json({
+        success: false,
+        message: 'Email/Nomor HP atau password salah.'
+      });
     }
 
     const user = rows[0];
+
+    // Cek password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: 'Email/Nomor HP atau password salah.' });
+      return res.status(401).json({
+        success: false,
+        message: 'Email/Nomor HP atau password salah.'
+      });
     }
 
+    // Buat token dengan data lengkap agar tidak perlu query ulang
     const token = jwt.sign({
       id: user.id,
       name: user.name,
       email: user.email,
+      phone_number: user.phone_number,
       role_id: user.role_id,
+      created_at: user.created_at // opsional
     }, process.env.JWT_SECRET || 'SECRET_KEY', { expiresIn: '1d' });
 
-    return res.json({
+    // Kirim respons sukses dengan user info
+    return res.status(200).json({
+      success: true,
       message: 'Login berhasil',
       token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role_id: user.role_id,
         phone_number: user.phone_number,
+        role_id: user.role_id
       }
     });
+
   } catch (error) {
     console.error('Login Error:', error);
-    return res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+    return res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan pada server.'
+    });
   }
 };
+

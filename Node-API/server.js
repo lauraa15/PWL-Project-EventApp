@@ -24,6 +24,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 app.use(express.json()); // <=== penting agar bisa baca JSON
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
@@ -53,6 +54,12 @@ db.getConnection()
 
 // ✅ Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
+// app.use('/api/finance', require('./routes/financeRoutes'));
+// app.use('/api/organizer', require('./routes/organizerRoutes'));
+// app.use('/api/member', require('./routes/memberRoutes'));
+// app.use('/api/users', userRoutes);
+
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/payments', paymentRoutes);

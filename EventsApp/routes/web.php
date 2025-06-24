@@ -1,36 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\TestConnectionController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Organizer\EventController;
 
-
+// ✅ Public Routes
+Route::view('/', 'welcome')->name('welcome');
 Route::view('/register', 'auth.register')->name('register');
+Route::view('/login', 'auth.login')->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
-// Role-specific dashboards with proper middleware
-// Role-specific dashboard routes with JWT middleware
-Route::middleware(['jwt'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('roles.admin.dashboard');
-    })->middleware('jwt:admin')->name('admin.dashboard');
-    
-    Route::get('/finance/dashboard', function () {
-        return view('roles.finance.dashboard');
-    })->middleware('jwt:finance')->name('finance.dashboard');
-    
-    Route::get('/organizer/dashboard', function () {
-        return view('roles.organizer.dashboard');
-    })->middleware('jwt:organizer')->name('organizer.dashboard');
-    
-    Route::get('/member/dashboard', function () {
-        return view('roles.member.dashboard');
-    })->middleware('jwt:member')->name('member.dashboard');
-});
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+Route::get('/dashboard2', fn() => view('dashboard2'))->name('dashboard2');
 
 Route::get('/db-test', function() {
     try {
@@ -40,54 +24,30 @@ Route::get('/db-test', function() {
         return "Could not connect to the database. Error: " . $e->getMessage();
     }
 });
-// Dashboard
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
-
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
-
-Route::get('/dashboard2', function () {
-    return view('dashboard2');
-})->name('dashboard2');
-
-Route::get('/admin/dashboard', function () {
-    return view('roles.admin.dashboard');
-})->name('admin.dashboard');
-Route::get('/finance/dashboard', function () {
-    return view('roles.finance.dashboard');
-})->name('finance.dashboard');
-Route::get('/member/dashboard', function () {
-    return view('roles.member.dashboard');
-})->name('member.dashboard');
-Route::get('/organizer/dashboard', function () {
-    return view('roles.organizer.dashboard');
-})->name('organizer.dashboard');
-
-
-Route::get('/admin/manage-user', function () {
-    return view('roles.admin.manage-user');
-})->name('admin.manage-user');
-Route::get('/admin/manage-events', function () {
-    return view('roles.admin.manage-events');
-})->name('admin.manage-events');
-
-
 Route::get('/test-connection', [TestConnectionController::class, 'test']);
+// Dashboard
 
-// Organizer Routes
-Route::middleware(['jwt:organizer'])->prefix('organizer')->name('organizer.')->group(function () {
-    Route::get('dashboard', function () {
-        return view('organizer.dashboard');
-    })->name('dashboard');
+// ✅ Role-based prefix (TANPA pengecekan hak akses)
+
+// ---------------- ADMIN ----------------
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::view('/dashboard', 'roles.admin.dashboard')->name('dashboard');
+    Route::view('/manage-user', 'roles.admin.manage-user')->name('manage-user');
+});
+
+// ---------------- FINANCE ----------------
+Route::prefix('finance')->name('finance.')->group(function () {
+    Route::view('/dashboard', 'roles.finance.dashboard')->name('dashboard');
+});
+
+// ---------------- ORGANIZER ----------------
+Route::prefix('organizer')->name('organizer.')->group(function () {
+    Route::get('/dashboard', [EventController::class, 'index'])->name('dashboard');
 
     // Events Management
     Route::get('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'showScanQR'])->name('events.scan-qr');
     Route::post('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'scanQR']);
-    
+
     // Certificate Management
     Route::get('events/{event}/certificates', [App\Http\Controllers\Organizer\EventController::class, 'showCertificates'])->name('events.certificates');
     Route::post('events/{event}/certificates/upload', [App\Http\Controllers\Organizer\EventController::class, 'uploadCertificate'])->name('events.certificates.upload');
@@ -104,5 +64,12 @@ Route::middleware(['jwt:organizer'])->prefix('organizer')->name('organizer.')->g
     Route::resource('certificates', App\Http\Controllers\Organizer\CertificateController::class)->only(['destroy']);
 });
 
-// Authentication routes
-// Auth::routes();
+// ---------------- MEMBER ----------------
+Route::prefix('member')->name('member.')->group(function () {
+    Route::view('/dashboard', 'roles.member.dashboard')->name('dashboard');
+});
+
+// ✅ Components
+Route::prefix('components')->name('component.')->group(function () {
+    Route::view('accordion', 'components.accordion')->name('accordion');
+});

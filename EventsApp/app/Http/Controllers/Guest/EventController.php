@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Redirect; 
-use Illuminate\Http\RedirectResponse; 
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class EventController extends Controller
@@ -22,7 +22,7 @@ class EventController extends Controller
     public function index()
     {
         $response = $this->apiService->get('events');
-        
+
         if (isset($response['error'])) {
             return back()->with('error', $response['error']);
         }
@@ -40,7 +40,7 @@ class EventController extends Controller
         ]);
 
         $response = $this->apiService->post('events', $data);
-        
+
         if (isset($response['error'])) {
             return back()->with('error', $response['error']);
         }
