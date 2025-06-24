@@ -38,18 +38,11 @@
                     </a>
                 </li>
                 
-                <!-- Components Menu -->
-                <li class="sidebar-item has-sub">
-                    <a href="#" class='sidebar-link'>
-                        <i class="bi bi-stack"></i>
-                        <span>Components</span>
+                <li class="sidebar-item {{ request()->is('admin/manage-events') ? 'active' : '' }}">
+                    <a href="{{ url('admin/manage-events') }}" class='sidebar-link'>
+                        <i class="bi bi-calendar-event-fill"></i>
+                        <span>Manage Events</span>
                     </a>
-                    <ul class="submenu">
-                        <li class="submenu-item">
-                            <a href="{{ route('component.accordion') }}" class="submenu-link">Accordion</a>
-                        </li>
-                        <!-- Other component links -->
-                    </ul>
                 </li>
          
                 <li class="sidebar-item {{ request()->is('/') ? 'active' : '' }}">

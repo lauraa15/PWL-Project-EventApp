@@ -1,123 +1,43 @@
-const Event = require('../models/Event');
-const { validationResult } = require('express-validator');
-const multer = require('multer');
-const path = require('path');
+const db = require('../config/db');
 
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/events')
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-});
-
-const upload = multer({ storage: storage });
-
-// Get all events
-exports.getEvents = async (req, res) => {
-    try {
-        const events = await Event.find()
-            .populate('event_type_id')
-            .populate('created_by', 'name email');
-        res.json({ success: true, data: events });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+// Ambil semua event
+const getAllEvents = async (req, res) => {
+  try {
+    const [events] = await db.query(`
+      SELECT e.*, et.type AS event_type_name
+      FROM events e
+      JOIN event_types et ON e.event_type_id = et.id
+    `);
+    res.json({ success: true, data: events });
+  } catch (error) {
+    console.error('Get all events error:', error);
+    res.status(500).json({ success: false, message: 'Gagal mengambil data events.' });
+  }
 };
 
-// Get a single event
-exports.getEvent = async (req, res) => {
-    try {
-        const event = await Event.findById(req.params.id)
-            .populate('event_type_id')
-            .populate('created_by', 'name email');
-        
-        if (!event) {
-            return res.status(404).json({ success: false, error: 'Event not found' });
-        }
-        
-        res.json({ success: true, data: event });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+// Nonaktif/Aktifkan event
+const toggleEventStatus = async (req, res) => {
+  const eventId = req.params.id;
+
+  try {
+    const [eventRows] = await db.query('SELECT is_active FROM events WHERE id = ?', [eventId]);
+    if (eventRows.length === 0) {
+      return res.status(404).json({ message: 'Event tidak ditemukan.' });
     }
+
+    const currentStatus = eventRows[0].is_active;
+    const newStatus = currentStatus ? 0 : 1;
+
+    await db.query('UPDATE events SET is_active = ? WHERE id = ?', [newStatus, eventId]);
+
+    res.json({ message: `Event berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}.` });
+  } catch (err) {
+    console.error('Toggle event status error:', err);
+    res.status(500).json({ message: 'Gagal mengubah status event.' });
+  }
 };
 
-// Create a new event
-exports.createEvent = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
-        const event = new Event({
-            ...req.body,
-            created_by: req.user.id // From auth middleware
-        });
-
-        if (req.file) {
-            event.poster_image = req.file.path;
-        }
-
-        await event.save();
-        res.status(201).json({ success: true, data: event });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-};
-
-// Update an event
-exports.updateEvent = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
-        const event = await Event.findById(req.params.id);
-        if (!event) {
-            return res.status(404).json({ success: false, error: 'Event not found' });
-        }
-
-        // Check if user is the creator
-        if (event.created_by.toString() !== req.user.id) {
-            return res.status(403).json({ success: false, error: 'Not authorized' });
-        }
-
-        if (req.file) {
-            req.body.poster_image = req.file.path;
-        }
-
-        const updatedEvent = await Event.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
-            { new: true, runValidators: true }
-        );
-
-        res.json({ success: true, data: updatedEvent });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-};
-
-// Delete an event
-exports.deleteEvent = async (req, res) => {
-    try {
-        const event = await Event.findById(req.params.id);
-        if (!event) {
-            return res.status(404).json({ success: false, error: 'Event not found' });
-        }
-
-        // Check if user is the creator
-        if (event.created_by.toString() !== req.user.id) {
-            return res.status(403).json({ success: false, error: 'Not authorized' });
-        }
-
-        await event.remove();
-        res.json({ success: true, data: {} });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+module.exports = {
+  getAllEvents,
+  toggleEventStatus
 };

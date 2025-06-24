@@ -14,6 +14,7 @@ const testRoutes = require('./routes/testRoutes');
 const userRoutes = require('./routes/userRoutes');
 
 
+
 const app = express();
 
 // ✅ Middleware (harus ditulis SEBELUM routes)
@@ -26,6 +27,7 @@ app.use(cors({
 app.use(express.json()); // <=== penting agar bisa baca JSON
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
+app.use('/api/events', require('./routes/eventRoutes'));
 // app.use(cors()); 
 // app.use(cors({ origin: 'http://localhost:8000' }));
 

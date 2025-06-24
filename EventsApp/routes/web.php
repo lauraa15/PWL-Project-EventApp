@@ -71,15 +71,10 @@ Route::get('/organizer/dashboard', function () {
 Route::get('/admin/manage-user', function () {
     return view('roles.admin.manage-user');
 })->name('admin.manage-user');
+Route::get('/admin/manage-events', function () {
+    return view('roles.admin.manage-events');
+})->name('admin.manage-events');
 
-// Components
-Route::prefix('components')->group(function () {
-    Route::get('accordion', function () {
-        return view('components.accordion');
-    })->name('component.accordion');
-    
-    // Other component routes
-});
 
 Route::get('/test-connection', [TestConnectionController::class, 'test']);
 
