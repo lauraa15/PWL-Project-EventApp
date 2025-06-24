@@ -13,7 +13,6 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Cek role_id secara langsung
 const requireRoleId = (roleId) => {
   return (req, res, next) => {
     if (req.user.role_id !== roleId) {
@@ -24,6 +23,7 @@ const requireRoleId = (roleId) => {
 };
 
 module.exports = {
+
   verifyToken,
   requireRoleId,
 };

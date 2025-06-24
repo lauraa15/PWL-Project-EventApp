@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // ✅ GET semua user
 const getAllUsers = async (req, res) => {
@@ -19,16 +20,21 @@ const getAllUsers = async (req, res) => {
 
 // ✅ CREATE user baru dengan role 'finance' atau 'organizer'
 const createUser = async (req, res) => {
-  const { name, email, phone_number, role_name } = req.body;
+  const { name, email, phone_number, role_name, password } = req.body;
 
   try {
-    // Pastikan role yang diterima hanya 'finance' atau 'organizer'
+    // // Validasi role hanya boleh finance / organizer
     const allowedRoles = ['finance', 'organizer'];
     if (!allowedRoles.includes(role_name.toLowerCase())) {
       return res.status(400).json({ message: 'Role tidak diizinkan untuk ditambahkan.' });
     }
 
-    // Cari ID role berdasarkan nama
+    // Validasi password wajib
+    if (!password || password.trim().length < 6) {
+      return res.status(400).json({ message: 'Password wajib diisi minimal 6 karakter.' });
+    }
+
+    // Cari role_id dari nama role
     const [roleResult] = await db.query(`SELECT id FROM roles WHERE name = ?`, [role_name.toLowerCase()]);
     if (roleResult.length === 0) {
       return res.status(400).json({ message: 'Role tidak ditemukan di database.' });
@@ -36,16 +42,20 @@ const createUser = async (req, res) => {
 
     const roleId = roleResult[0].id;
 
-    // Insert user
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Simpan user baru
     const [result] = await db.query(`
-      INSERT INTO users (name, email, phone_number, role_id, is_active)
-      VALUES (?, ?, ?, ?, 1)
-    `, [name, email, phone_number, roleId]);
+      INSERT INTO users (name, email, phone_number, password, role_id, is_active)
+      VALUES (?, ?, ?, ?, ?, 1)
+    `, [name, email, phone_number, hashedPassword, roleId]);
 
     res.status(201).json({
       message: 'User berhasil ditambahkan.',
       userId: result.insertId
     });
+
   } catch (err) {
     console.error('Create user error:', err);
     res.status(500).json({ message: 'Gagal menambahkan user.' });
