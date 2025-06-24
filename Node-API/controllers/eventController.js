@@ -37,7 +37,28 @@ const toggleEventStatus = async (req, res) => {
   }
 };
 
+const getEvent = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const [result] = await db.query(`
+      SELECT e.*, et.type AS event_type_name 
+      FROM events e 
+      JOIN event_types et ON e.event_type_id = et.id 
+      WHERE e.id = ?
+    `, [id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Event tidak ditemukan.' });
+    }
+
+    res.json({ success: true, data: result[0] });
+  } catch (error) {
+    console.error('Get event by ID error:', error);
+    res.status(500).json({ message: 'Gagal mengambil detail event.' });
+  }
+};
 module.exports = {
   getAllEvents,
-  toggleEventStatus
+  toggleEventStatus,
+  getEvent
 };

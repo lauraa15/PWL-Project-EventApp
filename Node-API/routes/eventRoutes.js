@@ -8,6 +8,7 @@ router.use(verifyToken);
 
 router.get('/', eventController.getAllEvents);
 router.patch('/:id/toggle', eventController.toggleEventStatus);
+router.get('/:id', eventController.getEvent);
 
 
 module.exports = router;
