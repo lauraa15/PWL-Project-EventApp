@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await response.json();
         console.log("Hasil fetch events:", result);
 
-        if (result.success && Array.isArray(result.events)) {
-        renderTable(result.events);
+        if (Array.isArray(result.events)) {
+            renderTable(result.events);
         }
 
         renderTable(result.events); // ← pastikan field sesuai dengan hasil response
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td>
                     <a href="javascript:void(0)" onclick="showEventDetails(${event.id})">${event.name}</a>
                 </td>
-                <td>${event.event_type_name}</td>
+                <td>${event.event_type_name || '-'}</td>
                 <td>${event.location}</td>
                 <td>${event.start_date}</td>
                 <td>${event.end_date}</td>
@@ -161,13 +161,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:3000/api/events/${eventId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         const result = await response.json();
-        if (!result.success) throw new Error('Gagal mengambil detail event.');
+        if (!result.data) throw new Error('Gagal mengambil detail event.');
 
-        const event = result.events;
+        const event = result.data;
 
         // Isi data ke modal
         document.getElementById('detailName').textContent = event.name;

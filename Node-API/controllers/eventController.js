@@ -63,12 +63,15 @@ const getEvent = async (req, res) => {
       FROM event_committees ec
       JOIN users u ON ec.user_id = u.id
       WHERE ec.event_id = ?
-    `, [eventId]);
-
+      `, [eventId]);
+      
     // Gabungkan
     event.committees = committeeResult;
 
-    res.json({ success: true, data: event });
+    return res.status(200).json({
+      success: true,
+      data: event
+    });
 
   } catch (err) {
     console.error('Get event by ID error:', err);
