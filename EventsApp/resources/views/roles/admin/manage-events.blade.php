@@ -30,19 +30,35 @@
             </table>
         </div>
     </div>
+    <!-- Modal Detail Event -->
     <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">Detail Event</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
         </div>
-        <div class="modal-body" id="eventDetailContent">
-            <!-- Detail akan diisi lewat JS -->
+        <div class="modal-body">
+            <h4 id="detailName" class="mb-2"></h4>
+            <p id="detailDescription" class="mb-3 text-muted"></p>
+            <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Jenis Event:</strong> <span id="detailType"></span></li>
+            <li class="list-group-item"><strong>Lokasi:</strong> <span id="detailLocation"></span></li>
+            <li class="list-group-item"><strong>Tanggal:</strong> <span id="detailDate"></span></li>
+            <li class="list-group-item"><strong>Fee:</strong> <span id="detailFee"></span></li>
+            <li class="list-group-item"><strong>Sertifikat:</strong> <span id="detailCertificate"></span></li>
+            </ul>
+
+            <h6>Daftar Panitia:</h6>
+            <ul id="committeeList" class="list-group"></ul>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
         </div>
         </div>
     </div>
     </div>
+
 </section>
 
 @endsection
@@ -54,7 +70,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const tbody = document.getElementById('events-body">');
     const tableElement = document.querySelector('#event-table');
-    const eventDetailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+    const detailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
 
 
     let events = [];
@@ -89,9 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <tr>
                 <td>${index + 1}</td>
                 <td>
-                    <a href="#" onclick="showEventDetails(${event.id})" class="text-decoration-none">
-                        ${event.name}
-                    </a>
+                    <a href="javascript:void(0)" onclick="showEventDetails(${event.id})">${event.name}</a>
                 </td>
                 <td>${event.event_type_name}</td>
                 <td>${event.location}</td>
@@ -151,26 +165,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Gagal ambil detail');
+        if (!result.success) throw new Error('Gagal mengambil detail event.');
 
-        const e = result.data;
+        const event = result.data;
 
-        document.getElementById('eventDetailContent').innerHTML = `
-        <h5>${e.name}</h5>
-        <p><strong>Tipe:</strong> ${e.event_type_name}</p>
-        <p><strong>Deskripsi:</strong> ${e.description || '-'}</p>
-        <p><strong>Waktu:</strong> ${new Date(e.start_date).toLocaleString()} - ${new Date(e.end_date).toLocaleString()}</p>
-        <p><strong>Lokasi:</strong> ${e.location || '-'}</p>
-        <p><strong>Fee:</strong> Rp${e.registration_fee.toLocaleString()}</p>
-        <p><strong>Tipe Registrasi:</strong> ${e.registration_type}</p>
-        <p><strong>Sertifikat:</strong> ${e.certificate_type}</p>
-        <p><strong>Status:</strong> ${e.is_active ? 'Aktif' : 'Nonaktif'}</p>
-        `;
+        // Isi data ke modal
+        document.getElementById('detailName').textContent = event.name;
+        document.getElementById('detailDescription').textContent = event.description || '-';
+        document.getElementById('detailType').textContent = event.event_type_name || '-';
+        document.getElementById('detailLocation').textContent = event.location || '-';
+        document.getElementById('detailDate').textContent =
+        `${new Date(event.start_date).toLocaleString()} - ${new Date(event.end_date).toLocaleString()}`;
+        document.getElementById('detailFee').textContent = `Rp ${parseInt(event.registration_fee).toLocaleString()}`;
+        document.getElementById('detailCertificate').textContent = event.certificate_type;
 
-        eventDetailModal.show();
+        // Daftar panitia
+        const committeeList = document.getElementById('committeeList');
+        committeeList.innerHTML = ''; // kosongkan dulu
+        if (event.committees && event.committees.length > 0) {
+        event.committees.forEach(panitia => {
+            const li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.textContent = `${panitia.name} (${panitia.email})`;
+            committeeList.appendChild(li);
+        });
+        } else {
+        committeeList.innerHTML = `<li class="list-group-item text-muted">Tidak ada panitia terdaftar.</li>`;
+        }
+
+        detailModal.show();
     } catch (err) {
         console.error('Gagal ambil detail event:', err);
-        Swal.fire('Gagal', 'Tidak dapat menampilkan detail event.', 'error');
+        alert('Gagal menampilkan detail event.');
     }
     };
 

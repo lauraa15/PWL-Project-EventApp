@@ -38,22 +38,38 @@ const toggleEventStatus = async (req, res) => {
 };
 
 const getEvent = async (req, res) => {
-  const id = req.params.id;
-  try {
-    const [result] = await db.query(`
-      SELECT e.*, et.type AS event_type_name 
-      FROM events e 
-      JOIN event_types et ON e.event_type_id = et.id 
-      WHERE e.id = ?
-    `, [id]);
+  const eventId = req.params.id;
 
-    if (result.length === 0) {
+  try {
+    // Ambil detail event
+    const [eventResult] = await db.query(`
+      SELECT e.*, et.type AS event_type_name
+      FROM events e
+      JOIN event_types et ON e.event_type_id = et.id
+      WHERE e.id = ?
+    `, [eventId]);
+
+    if (eventResult.length === 0) {
       return res.status(404).json({ message: 'Event tidak ditemukan.' });
     }
 
-    res.json({ success: true, data: result[0] });
-  } catch (error) {
-    console.error('Get event by ID error:', error);
+    const event = eventResult[0];
+
+    // Ambil daftar panitia
+    const [committeeResult] = await db.query(`
+      SELECT u.id, u.name, u.email, u.phone_number
+      FROM event_committees ec
+      JOIN users u ON ec.user_id = u.id
+      WHERE ec.event_id = ?
+    `, [eventId]);
+
+    // Gabungkan
+    event.committees = committeeResult;
+
+    res.json({ success: true, data: event });
+
+  } catch (err) {
+    console.error('Get event by ID error:', err);
     res.status(500).json({ message: 'Gagal mengambil detail event.' });
   }
 };
