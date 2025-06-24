@@ -33,6 +33,12 @@ Route::get('/test-connection', [TestConnectionController::class, 'test']);
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/dashboard', 'roles.admin.dashboard')->name('dashboard');
     Route::view('/manage-user', 'roles.admin.manage-user')->name('manage-user');
+    Route::get('/manage-user', function () {
+        return view('roles.admin.manage-user');
+    })->name('admin.manage-user');
+    Route::get('/manage-events', function () {
+        return view('roles.admin.manage-events');
+    })->name('admin.manage-events');
 });
 
 // ---------------- FINANCE ----------------

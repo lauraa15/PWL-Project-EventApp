@@ -60,7 +60,6 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 // app.use('/api/member', require('./routes/memberRoutes'));
 // app.use('/api/users', userRoutes);
 
-app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/attendances', attendanceRoutes);

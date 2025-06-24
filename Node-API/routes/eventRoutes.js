@@ -3,9 +3,11 @@ const router = express.Router();
 const db = require('../config/db');
 const multer = require('multer');
 const path = require('path');
+const eventController = require('../controllers/eventController');
 
 // Middleware JWT (opsional)
 const jwt = require('jsonwebtoken');
+const { getAllEvents } = require('../controllers/eventController');
 
 // Setup storage untuk Multer
 const storage = multer.diskStorage({
@@ -32,23 +34,6 @@ function verifyToken(req, res, next) {
     return res.status(401).json({ message: 'Token tidak valid.' });
   }
 }
-
-// ✅ GET /api/events — ambil semua event
-router.get('/', async (req, res) => {
-  try {
-    const [events] = await db.query('SELECT * FROM events ORDER BY registration_open_date ASC');
-    const [eventTypes] = await db.query('SELECT id, type FROM event_types');
-
-    res.json({
-      events,
-      eventTypes
-    });
-  } catch (err) {
-    console.error('Error fetching events:', err);
-    res.status(500).json({ message: 'Gagal mengambil data event' });
-  }
-});
-
 
 router.post('/add-event', upload.single('poster_image'), async (req, res) => {
   try {
@@ -123,19 +108,8 @@ router.post('/add-event', upload.single('poster_image'), async (req, res) => {
   }
 });
 
-// ✅ GET /api/events/:id — ambil detail event
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [id]);
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Event tidak ditemukan' });
-    }
-    res.json(rows[0]);
-  } catch (err) {
-    console.error('Error fetching event by ID:', err);
-    res.status(500).json({ message: 'Terjadi kesalahan pada server' });
-  }
-});
+router.get('/', eventController.getAllEvents);
+router.patch('/:id/toggle', eventController.toggleEventStatus);
+router.get('/:id', eventController.getEvent);
 
 module.exports = router;
