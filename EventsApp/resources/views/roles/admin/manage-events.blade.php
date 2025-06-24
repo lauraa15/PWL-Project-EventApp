@@ -86,11 +86,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await response.json();
         console.log("Hasil fetch events:", result);
 
-        if (result.success && Array.isArray(result.data)) {
-        renderTable(result.data);
+        if (result.success && Array.isArray(result.events)) {
+        renderTable(result.events);
         }
 
-        renderTable(result.data); // ← pastikan field sesuai dengan hasil response
+        renderTable(result.events); // ← pastikan field sesuai dengan hasil response
         new simpleDatatables.DataTable(tableElement);
     } catch (err) {
         console.error('Gagal fetch events:', err);
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await response.json();
         if (!result.success) throw new Error('Gagal mengambil detail event.');
 
-        const event = result.data;
+        const event = result.events;
 
         // Isi data ke modal
         document.getElementById('detailName').textContent = event.name;

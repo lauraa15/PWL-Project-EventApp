@@ -154,7 +154,7 @@
                             <div class="alert alert-info text-center">
                                 Anda belum menambahkan Event.
                             </div>
-                        @endif
+                        @else
                         <div class="tab-content">
                             <!-- Upcoming Events Tab -->
                             <div class="tab-pane fade show active" id="upcoming-events">
@@ -289,6 +289,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>

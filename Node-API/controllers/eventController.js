@@ -8,10 +8,12 @@ const getAllEvents = async (req, res) => {
       FROM events e
       JOIN event_types et ON e.event_type_id = et.id
     `);
-    res.json({ success: true, data: events });
-  } catch (error) {
-    console.error('Get all events error:', error);
-    res.status(500).json({ success: false, message: 'Gagal mengambil data events.' });
+    const [eventTypes] = await db.query('SELECT id, type FROM event_types');
+
+    res.status(200).json({ events, eventTypes });
+  } catch (err) {
+    console.error('Error fetching events:', err);
+    res.status(500).json({ message: 'Gagal mengambil data event' });
   }
 };
 
