@@ -44,6 +44,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // ---------------- FINANCE ----------------
 Route::prefix('finance')->name('finance.')->group(function () {
     Route::view('/dashboard', 'roles.finance.dashboard')->name('dashboard');
+    Route::view('/manage-finance', 'roles.finance.manage-finance')->name('manage-finance');
 });
 
 // ---------------- ORGANIZER ----------------

@@ -28,7 +28,8 @@ app.use(cors({
 app.use(express.json()); // <=== penting agar bisa baca JSON
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
-app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/events', eventRoutes);
+app.use('/api/finance', paymentRoutes);
 // app.use(cors()); 
 // app.use(cors({ origin: 'http://localhost:8000' }));
 

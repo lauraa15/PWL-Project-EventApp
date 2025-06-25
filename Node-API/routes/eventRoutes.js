@@ -111,5 +111,23 @@ router.post('/add-event', upload.single('poster_image'), async (req, res) => {
 router.get('/', eventController.getAllEvents);
 router.patch('/:id/toggle', eventController.toggleEventStatus);
 router.get('/:id', eventController.getEvent);
+router.get('/finance/registrations', async (req, res) => {
+  try {
+    // ambil data registrasi dari database
+    const [rows] = await db.query(`
+      SELECT r.*, u.name as user_name, u.email, e.name as event_name
+      FROM registrations r
+      JOIN users u ON r.user_id = u.id
+      JOIN events e ON r.event_id = e.id
+      WHERE e.finance_id = ?
+    `, [req.user.id]);
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('Gagal ambil data registrasi:', err);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+  }
+}); 
+
 
 module.exports = router;

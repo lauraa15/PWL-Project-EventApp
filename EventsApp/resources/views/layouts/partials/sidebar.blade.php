@@ -38,10 +38,16 @@
                     </a>
                 </li>
                 
-                <li class="sidebar-item {{ request()->is('admin/manage-events') ? 'active' : '' }}">
-                    <a href="{{ url('admin/manage-events') }}" class='sidebar-link'>
+                <li class="sidebar-item" id="eventManagementMenu">
+                    <a href="{{ url('admin/manage-events') }}" class="sidebar-link">
                         <i class="bi bi-calendar-event-fill"></i>
                         <span>Manage Events</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" id="financeMenu">
+                    <a href="{{ url('finance/manage-finance') }}" class="sidebar-link">
+                        <i class="bi bi-cash-coin"></i>
+                        <span>Manage Finance</span>
                     </a>
                 </li>
          
@@ -120,6 +126,14 @@
                 if (userDataMenu && roleId !== 1) {
                     userDataMenu.style.display = 'none';
                 }
+                if (eventManagementMenu && roleId !== 1) {
+                    eventManagementMenu.style.display = 'none';
+                }
+                if (financeMenu && roleId !== 2) {
+                financeMenu.style.display = 'none';
+            }
+
+                
 
             } catch (error) {
                 console.error('Invalid token format:', error);
