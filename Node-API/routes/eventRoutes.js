@@ -4,10 +4,12 @@ const db = require('../config/db');
 const multer = require('multer');
 const path = require('path');
 const eventController = require('../controllers/eventController');
+const { verifyToken } = require('../middlewares/authMiddleware');
 
 // Middleware JWT (opsional)
 const jwt = require('jsonwebtoken');
 const { getAllEvents } = require('../controllers/eventController');
+
 
 // Setup storage untuk Multer
 const storage = multer.diskStorage({
@@ -21,19 +23,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-function verifyToken(req, res, next) {
-  const token = req.headers['authorization'];
-  if (!token) return res.status(403).json({ message: 'Token tidak diberikan.' });
 
-  const bearerToken = token.split(' ')[1];
-  try {
-    const decoded = jwt.verify(bearerToken, process.env.JWT_SECRET || 'SECRET_KEY');
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Token tidak valid.' });
-  }
-}
 
 router.post('/add-event', upload.single('poster_image'), async (req, res) => {
   try {
@@ -107,10 +97,15 @@ router.post('/add-event', upload.single('poster_image'), async (req, res) => {
     res.status(500).json({ message: 'Gagal membuat event' });
   }
 });
-
+// Wajib pakai verifyToken di awal
 router.get('/', eventController.getAllEvents);
-router.patch('/:id/toggle', eventController.toggleEventStatus);
-router.get('/:id', eventController.getEvent);
+
+// PATCH, PUT, dsb
+router.patch('/:id/toggle', verifyToken, eventController.toggleEventStatus);
+router.put('/update-event/:id', verifyToken, eventController.updateEvent);
+router.get('/:id', verifyToken, eventController.getEvent);
+
+
 router.get('/finance/registrations', async (req, res) => {
   try {
     // ambil data registrasi dari database

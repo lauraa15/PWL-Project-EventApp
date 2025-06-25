@@ -171,7 +171,7 @@
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody >
                                             @foreach ($events as $event)
                                                 @if (strtotime($event['start_date']) > time() )
                                                     <tr>
@@ -187,9 +187,30 @@
                                                         @endif
                                                         <td>
                                                             <div class="btn-group">
-                                                                <button class="btn btn-sm btn-outline-primary">View</button>
-                                                                <button
-                                                                    class="btn btn-sm btn-outline-secondary">Edit</button>
+                                                                <button 
+                                                                    class="btn btn-sm btn-outline-primary"
+                                                                    onclick="showEventDetails({{ $event['id'] }})">
+                                                                    View
+                                                                </button>
+                                                                <button 
+                                                                    class="btn btn-sm btn-outline-secondary btn-edit-event"
+                                                                    data-id="{{ $event['id'] }}"
+                                                                    data-name="{{ $event['name'] }}"
+                                                                    data-event-type-id="{{ $event['event_type_id'] }}"
+                                                                    data-description="{{ $event['description'] }}"
+                                                                    data-start-date="{{ $event['start_date'] }}"
+                                                                    data-end-date="{{ $event['end_date'] }}"
+                                                                    data-location="{{ $event['location'] }}"
+                                                                    data-registration-open-date="{{ $event['registration_open_date'] }}"
+                                                                    data-registration-close-date="{{ $event['registration_close_date'] }}"
+                                                                    data-registration-fee="{{ $event['registration_fee'] }}"
+                                                                    data-registration-type="{{ $event['registration_type'] }}"
+                                                                    data-max-participants="{{ $event['max_participants'] }}"
+                                                                    data-certificate-type="{{ $event['certificate_type'] }}"
+                                                                    data-is-active="{{ $event['is_active'] }}"
+                                                                >
+                                                                    Edit
+                                                                </button>
                                                                 <button
                                                                     class="btn btn-sm btn-outline-danger">Cancel</button>
                                                             </div>
@@ -483,6 +504,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Detail Event -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="detailName"></h4>
+                <p id="detailDescription" class="text-muted"></p>
+
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Kategori:</strong> <span id="detailType"></span></li>
+                    <li class="list-group-item"><strong>Lokasi:</strong> <span id="detailLocation"></span></li>
+                    <li class="list-group-item"><strong>Tanggal:</strong> <span id="detailDate"></span></li>
+                    <li class="list-group-item"><strong>Biaya:</strong> <span id="detailFee"></span></li>
+                    <li class="list-group-item"><strong>Sertifikat:</strong> <span id="detailCertificate"></span></li>
+                </ul>
+
+                <h5>Daftar Panitia</h5>
+                <ul class="list-group" id="committeeList"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -511,9 +560,55 @@
         }
     </script>
     <script>
-        document.getElementById('createEventForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    let isEdit = false;
+    let currentEventId = null;
 
+    document.querySelectorAll('.btn-edit-event').forEach(button => {
+        button.addEventListener('click', function () {
+            isEdit = true;
+            currentEventId = this.dataset.id;
+
+            const form = document.getElementById('createEventForm');
+
+            // Isi data ke dalam form
+            form.name.value = this.dataset.name;
+            form.event_type_id.value = this.dataset['eventTypeId'];
+            form.description.value = this.dataset.description;
+            form.start_date.value = formatDateForInput(this.dataset.startDate);
+            form.end_date.value = formatDateForInput(this.dataset.endDate);
+            form.location.value = this.dataset.location;
+            form.registration_open_date.value = formatDateForInput(this.dataset.registrationOpenDate);
+            form.registration_close_date.value = formatDateForInput(this.dataset.registrationCloseDate);
+            form.registration_fee.value = this.dataset.registrationFee;
+            form.registration_type.value = this.dataset.registrationType;
+            form.max_participants.value = this.dataset.maxParticipants;
+            form.certificate_type.value = this.dataset.certificateType;
+
+            const activeRadios = form.querySelectorAll('input[name="is_active"]');
+            activeRadios.forEach(r => {
+                r.checked = parseInt(r.value) === parseInt(this.dataset.isActive);
+            });
+
+            // Ganti teks tombol
+            document.getElementById('createEventModalLabel').innerText = 'Edit Event';
+            form.querySelector('button[type="submit"]').innerText = 'Update Event';
+
+            // Tampilkan modal
+            const modal = new bootstrap.Modal(document.getElementById('createEventModal'));
+            modal.show();
+        });
+    });
+    function formatDateForInput(dateString) {
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+}
+
+</script>
+    <script>
+        document.getElementById('createEventForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
             const form = e.target;
 
             const data = {
@@ -533,19 +628,15 @@
                 is_active: parseInt(form.is_active.value)
             };
 
-            // Validasi dasar
-            if (!data.name || !data.event_type_id || !data.start_date || !data.end_date || !data.location) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Harap lengkapi semua field wajib.'
-                });
-                return;
-            }
+            const url = isEdit
+                ? `http://localhost:3000/api/events/update-event/${currentEventId}`
+                : `http://localhost:3000/api/events/add-event`;
+
+            const method = isEdit ? 'PUT' : 'POST';
 
             try {
-                const response = await fetch('http://localhost:3000/api/events/add-event', {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -558,18 +649,21 @@
                 if (response.ok) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Event berhasil dibuat.',
+                        title: isEdit ? 'Event berhasil diperbarui.' : 'Event berhasil dibuat.',
                         confirmButtonText: 'OK'
                     }).then(() => {
                         form.reset();
+                        isEdit = false;
+                        currentEventId = null;
+                        document.getElementById('createEventModalLabel').innerText = 'Create New Event';
+                        form.querySelector('button[type="submit"]').innerText = 'Publish Event';
                         window.location.reload();
                     });
                 } else {
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal!',
-                        text: result.message || 'Gagal membuat event.'
+                        text: result.message || 'Gagal memproses event.'
                     });
                 }
             } catch (err) {
@@ -582,4 +676,64 @@
             }
         });
     </script>
+    <script>
+    document.getElementById('createEventModal').addEventListener('hidden.bs.modal', function () {
+        const form = document.getElementById('createEventForm');
+        form.reset();
+        isEdit = false;
+        currentEventId = null;
+        document.getElementById('createEventModalLabel').innerText = 'Create New Event';
+        form.querySelector('button[type="submit"]').innerText = 'Publish Event';
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const detailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+
+    window.showEventDetails = async (eventId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:3000/api/events/${eventId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const result = await response.json();
+            if (!result.data) throw new Error('Gagal mengambil detail event.');
+
+            const event = result.data;
+
+            // Isi data ke modal
+            document.getElementById('detailName').textContent = event.name;
+            document.getElementById('detailDescription').textContent = event.description || '-';
+            document.getElementById('detailType').textContent = event.event_type_name || '-';
+            document.getElementById('detailLocation').textContent = event.location || '-';
+            document.getElementById('detailDate').textContent =
+                `${new Date(event.start_date).toLocaleString()} - ${new Date(event.end_date).toLocaleString()}`;
+            document.getElementById('detailFee').textContent = `Rp ${parseInt(event.registration_fee).toLocaleString()}`;
+            document.getElementById('detailCertificate').textContent = event.certificate_type;
+
+            // Daftar panitia
+            const committeeList = document.getElementById('committeeList');
+            committeeList.innerHTML = ''; // kosongkan dulu
+            if (event.committees && event.committees.length > 0) {
+                event.committees.forEach(panitia => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item');
+                    li.textContent = `${panitia.name} (${panitia.email})`;
+                    committeeList.appendChild(li);
+                });
+            } else {
+                committeeList.innerHTML = `<li class="list-group-item text-muted">Tidak ada panitia terdaftar.</li>`;
+            }
+
+            detailModal.show();
+        } catch (err) {
+            console.error('Gagal ambil detail event:', err);
+            alert('Gagal menampilkan detail event.');
+        }
+    };
+});
+</script>
+
+
 @endpush

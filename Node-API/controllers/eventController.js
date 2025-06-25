@@ -2,6 +2,8 @@ const db = require('../config/db');
 
 // Ambil semua event
 const getAllEvents = async (req, res) => {
+  console.log('req.user:', req.user);
+
   try {
     const [events] = await db.query(`
       SELECT e.*, et.type AS event_type_name
@@ -78,8 +80,65 @@ const getEvent = async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil detail event.' });
   }
 };
+
+const updateEvent = (req, res) => {
+    const eventId = req.params.id;
+    const data = req.body;
+
+    if (!eventId) {
+        return res.status(400).json({ message: 'ID event tidak valid.' });
+    }
+
+    // Buat array untuk menyimpan bagian SET dari query dan nilai-nilainya
+    const fields = [];
+    const values = [];
+
+    const allowedFields = [
+        'name', 'event_type_id', 'description', 'start_date', 'end_date',
+        'location', 'registration_open_date', 'registration_close_date',
+        'registration_fee', 'registration_type', 'max_participants',
+        'certificate_type', 'is_active'
+    ];
+
+    // Loop semua field yang diizinkan dan tambahkan jika ada di request body
+    allowedFields.forEach(field => {
+        if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+            fields.push(`${field} = ?`);
+            values.push(data[field]);
+        }
+    });
+
+    if (fields.length === 0) {
+        return res.status(400).json({ message: 'Tidak ada data untuk diupdate.' });
+    }
+
+    // Tambahkan updated_at
+    fields.push('updated_at = NOW()');
+
+    const sql = `
+        UPDATE events SET ${fields.join(', ')}
+        WHERE id = ?
+    `;
+    values.push(eventId);
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Update event error:', err);
+            return res.status(500).json({ message: 'Gagal memperbarui event.' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Event tidak ditemukan.' });
+        }
+
+        res.status(200).json({ message: 'Event berhasil diperbarui.' });
+    });
+};
+
+
 module.exports = {
   getAllEvents,
   toggleEventStatus,
-  getEvent
+  getEvent,
+  updateEvent
 };
