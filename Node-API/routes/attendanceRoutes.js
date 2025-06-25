@@ -1,6 +1,8 @@
-// routes/attendance.js
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const attendanceController = require('../controllers/attendanceController');
 const db = require('../config/db');
 
 router.post('/scan', async (req, res) => {
@@ -43,6 +45,7 @@ router.post('/scan', async (req, res) => {
         res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
     }
 });
+
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -62,5 +65,22 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../public/certif'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'certif-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+
+router.post('/attendance/upload-certificate',
+  upload.single('certificate_file'),
+  attendanceController.uploadCertificate
+);
 
 module.exports = router;

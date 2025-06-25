@@ -58,6 +58,28 @@ const scanAttendance = async (req, res) => {
   }
 };
 
+const uploadCertificate = async (req, res) => {
+  const { attendance_id } = req.body;
+  const file = req.file;
+
+  if (!file) return res.status(400).json({ message: 'File sertifikat tidak ditemukan' });
+
+  const filePath = `certif/${file.filename}`;
+
+  try {
+    await db.query(
+      'UPDATE attendance SET certificate_file_path = ?, certificate_issued_at = NOW() WHERE id = ?',
+      [filePath, attendance_id]
+    );
+
+    res.json({ message: 'Sertifikat berhasil diunggah', filePath });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Gagal mengunggah sertifikat' });
+  }
+};
+
 module.exports = {
-  scanAttendance
+  scanAttendance,
+  uploadCertificate
 };

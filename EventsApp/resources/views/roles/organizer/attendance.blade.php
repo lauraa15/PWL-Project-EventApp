@@ -12,6 +12,21 @@
                 <th>Waktu Scan</th>
                 <th>Sertifikat</th>
             </tr>
+            <tr>
+                <td>Laura Aja</td>
+                <td>Getting Started with Laravel</td>
+                <td>2025-06-25 11:44:31</td>
+                <td>
+                    <form id="uploadCertificateForm" enctype="multipart/form-data">
+                    <div class="mb-2">
+                        <label for="certificate_file" class="block text-sm font-medium">Upload Sertifikat (PDF/JPG/PNG):</label>
+                        <input type="file" name="certificate_file" id="certificate_file" accept=".pdf,.jpg,.jpeg,.png" required class="border p-2 w-full">
+                    </div>
+
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Sertifikat</button>
+                </form>
+                </td>
+            </tr>
         </thead>
         <tbody id="attendance-table-body">
             <tr><td colspan="4">Memuat data...</td></tr>
@@ -95,5 +110,27 @@ function uploadCertificate(event, attendanceId) {
         alert('❌ Terjadi kesalahan saat mengunggah.');
     });
 }
+</script>
+<script>
+document.getElementById('uploadCertificateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    const response = await fetch('/api/attendance/upload-certificate', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token') // jika pakai token
+        }
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+        alert('Upload berhasil!');
+    } else {
+        alert('Upload gagal: ' + result.message);
+    }
+});
 </script>
 @endpush
