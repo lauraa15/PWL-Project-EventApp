@@ -56,9 +56,9 @@ db.getConnection()
 // ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', require('./routes/adminRoutes'));
+// app.use('/api/member', require('./routes/registerRoutes'));
 // app.use('/api/finance', require('./routes/financeRoutes'));
 // app.use('/api/organizer', require('./routes/organizerRoutes'));
-// app.use('/api/member', require('./routes/memberRoutes'));
 // app.use('/api/users', userRoutes);
 
 app.use('/api/registrations', registrationRoutes);
