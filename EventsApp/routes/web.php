@@ -5,6 +5,10 @@ use App\Http\Controllers\TestConnectionController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Organizer\EventController;
+use App\Http\Controllers\Organizer\AttendanceController;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+
 
 // ✅ Public Routes
 Route::view('/', 'welcome')->name('welcome');
@@ -51,10 +55,26 @@ Route::prefix('finance')->name('finance.')->group(function () {
 Route::prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard', [EventController::class, 'index'])->name('dashboard');
 
-    // Events Management
-    Route::get('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'showScanQR'])->name('events.scan-qr');
-    Route::post('events/{event}/scan-qr', [App\Http\Controllers\Organizer\EventController::class, 'scanQR']);
+    Route::get('/scan-qr', function () {
+        return view('roles.organizer.scan-qr');
+    })->name('scan-qr');
 
+    Route::post('/scan-qr', function (Request $request) {
+        try {
+            $response = Http::post('http://localhost:3000/api/attendance/scan', $request->all());
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim data ke server Node.js.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    });
+    Route::get('/attendance', function () {
+    return view('roles.organizer.attendance');
+})->name('organizer.attendance');
+});
     // Certificate Management
     Route::get('events/{event}/certificates', [App\Http\Controllers\Organizer\EventController::class, 'showCertificates'])->name('events.certificates');
     Route::post('events/{event}/certificates/upload', [App\Http\Controllers\Organizer\EventController::class, 'uploadCertificate'])->name('events.certificates.upload');
@@ -69,7 +89,8 @@ Route::prefix('organizer')->name('organizer.')->group(function () {
     // Resource Routes
     Route::resource('events', App\Http\Controllers\Organizer\EventController::class);
     Route::resource('certificates', App\Http\Controllers\Organizer\CertificateController::class)->only(['destroy']);
-});
+
+
 
 // ---------------- MEMBER ----------------
 Route::prefix('member')->name('member.')->group(function () {

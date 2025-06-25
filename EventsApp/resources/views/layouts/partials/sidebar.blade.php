@@ -50,6 +50,18 @@
                         <span>Manage Finance</span>
                     </a>
                 </li>
+                <li class="sidebar-item" id="scanQRMenu">
+                    <a href="{{ url('organizer/scan-qr') }}" class="sidebar-link">
+                        <i class="bi bi-check"></i>
+                        <span>Scan QR</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" id="attendanceMenu">
+                    <a href="{{ url('organizer/attendance') }}" class='sidebar-link'>
+                        <i class="bi bi-journal-check"></i>
+                        <span>Attendance</span>
+                    </a>
+
          
                 <li class="sidebar-item {{ request()->is('/') ? 'active' : '' }}">
                     <a href="#" class='sidebar-link' id="logout-button">
@@ -132,6 +144,12 @@
                 if (financeMenu && roleId !== 2) {
                 financeMenu.style.display = 'none';
             }
+                if (scanQRMenu && roleId !== 3) {
+                    scanQRMenu.style.display = 'none';
+                }
+                if (attendanceMenu && roleId !== 3) {
+                    attendanceMenu.style.display = 'none';
+                }
 
                 
 

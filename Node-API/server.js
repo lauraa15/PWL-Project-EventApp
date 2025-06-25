@@ -14,7 +14,6 @@ const testRoutes = require('./routes/testRoutes');
 const userRoutes = require('./routes/userRoutes');
 
 
-
 const app = express();
 
 // ✅ Middleware (harus ditulis SEBELUM routes)
@@ -30,6 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/finance', paymentRoutes);
+app.use('/api/attendance', attendanceRoutes);
+
 // app.use(cors()); 
 // app.use(cors({ origin: 'http://localhost:8000' }));
 

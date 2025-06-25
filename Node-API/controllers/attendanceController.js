@@ -1,47 +1,63 @@
-// attendanceController.js
 const db = require('../config/db');
 
-exports.scanAttendance = async (req, res) => {
-  const { qr_code, session_id } = req.body;
-
-  if (!qr_code || !session_id) {
-    return res.status(400).json({ message: 'QR code dan session wajib diisi' });
-  }
+const scanAttendance = async (req, res) => {
+  const { qr_code_text, session_id } = req.body;
 
   try {
-    // Cek apakah qr_code valid
-    const [registrations] = await db.query(
-      'SELECT id FROM registrations WHERE qr_code = ?',
-      [qr_code]
-    );
+    if (!qr_code_text || !session_id) {
+      return res.status(400).json({ success: false, message: 'QR Code dan sesi wajib diisi.' });
+    }
+
+    // Ambil ID registrasi dari QR
+    const match = qr_code_text.match(/REGISTRATION-(\d+)/);
+    if (!match) {
+      return res.status(400).json({ success: false, message: 'Format QR tidak valid.' });
+    }
+    const registration_id = parseInt(match[1]);
+
+    // Cek apakah registrasi valid
+    const [registrations] = await db.query(`
+      SELECT r.*, u.name AS user_name 
+      FROM registrations r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.id = ?
+    `, [registration_id]);
 
     if (registrations.length === 0) {
-      return res.status(404).json({ message: 'QR code tidak valid atau tidak ditemukan' });
+      return res.status(404).json({ success: false, message: 'Registrasi tidak ditemukan.' });
     }
 
-    const registration_id = registrations[0].id;
-
-    // Cek apakah sudah pernah scan untuk session ini
-    const [existing] = await db.query(
-      'SELECT * FROM attendance WHERE registration_id = ? AND session_id = ?',
-      [registration_id, session_id]
-    );
+    // Cek apakah sudah absen
+    const [existing] = await db.query(`
+      SELECT * FROM attendance 
+      WHERE registration_id = ? AND session_id = ?
+    `, [registration_id, session_id]);
 
     if (existing.length > 0) {
-      return res.status(409).json({ message: 'Peserta sudah terdaftar hadir untuk sesi ini' });
+      return res.status(409).json({ success: false, message: 'Peserta sudah dicatat hadir di sesi ini.' });
     }
 
-    // Insert ke attendance
-    await db.query(
-      `INSERT INTO attendance (registration_id, session_id, scan_time, created_at)
-       VALUES (?, ?, NOW(), NOW())`,
-      [registration_id, session_id]
-    );
+    // Simpan kehadiran
+    await db.query(`
+      INSERT INTO attendance (registration_id, session_id, scan_time, created_at)
+      VALUES (?, ?, NOW(), NOW())
+    `, [registration_id, session_id]);
 
-    res.json({ message: 'Kehadiran berhasil dicatat' });
+    return res.json({ 
+      success: true, 
+      message: 'Kehadiran berhasil dicatat.',
+      data: {
+        registration_id,
+        name: registrations[0].user_name
+      }
+    });
 
-  } catch (err) {
-    console.error('Error scan QR:', err);
-    res.status(500).json({ message: 'Terjadi kesalahan saat memproses kehadiran' });
+  } catch (error) {
+    console.error('❌ Error saat mencatat kehadiran:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
   }
+};
+
+module.exports = {
+  scanAttendance
 };
