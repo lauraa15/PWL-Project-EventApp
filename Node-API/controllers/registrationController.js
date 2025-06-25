@@ -41,6 +41,21 @@ const register = async (req, res) => {
             [registrationId, amount, 'pending', notes || null, now, now]
         );
 
+        // 4. Add current user ke event_comittees jika belum ada
+         await connection.query(
+            `INSERT IGNORE INTO event_committees (event_id, user_id)
+            VALUES (?, ?)`,
+            [eventId, userId]
+         );
+
+        // 5. Add current_participants ke events
+        await connection.query(
+            `UPDATE events 
+            SET current_participants = current_participants + 1, updated_at = ?
+            WHERE id = ?`,
+            [now, eventId]
+        );
+
         await connection.commit();
 
         return res.status(201).json({

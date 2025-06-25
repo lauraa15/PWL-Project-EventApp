@@ -234,25 +234,57 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                {{-- <div class="card mt-4">
-                    <div class="card-header">
-                        <h4>Quick Actions</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" onclick="showEventHistory()">
-                                <i class="bi bi-clock-history me-2"></i>Event History
-                            </button>
-                            <button class="btn btn-outline-primary" onclick="showFavorites()">
-                                <i class="bi bi-heart me-2"></i>Favorites
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="showProfile()">
-                                <i class="bi bi-person me-2"></i>Profile Settings
-                            </button>
+                <!-- Upload Receipt Modal -->
+                <div class="modal fade" id="uploadReceiptModal" tabindex="-1" aria-labelledby="uploadReceiptModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="uploadReceiptModalLabel">Upload Payment Receipt</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="uploadReceiptForm" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="receiptFile" class="form-label">Select Receipt Image</label>
+                                        <input type="file" class="form-control" id="receiptFile" name="receipt" accept="image/*" required>
+                                        <div class="form-text">Please upload a clear image of your payment receipt (JPG, PNG, max 5MB)</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div id="imagePreview" class="d-none">
+                                            <img id="previewImg" src="" alt="Receipt Preview" class="img-fluid rounded" style="max-height: 200px;">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="eventIdForUpload" name="event_id">
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="submitReceiptBtn" onclick="uploadReceipt()">
+                                    <span id="uploadSpinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                                    Upload Receipt
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div> --}}
+                </div>
+
+                <!-- QR Code Modal -->
+                <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="qrCodeModalLabel">Event QR Code</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <div id="qrCodeContainer">
+                                    <!-- QR Code will be displayed here -->
+                                </div>
+                                <p class="mt-3 text-muted small">Show this QR code at the event entrance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
@@ -306,7 +338,8 @@
     <script>
         const sampleEvents = @json($events, JSON_UNESCAPED_UNICODE);
         const eventTypes = @json($eventTypes, JSON_UNESCAPED_UNICODE);
-        console.log(sampleEvents);
+        const eventPayments = @json($eventPayments, JSON_UNESCAPED_UNICODE);
+
         let registeredEvents = JSON.parse(localStorage.getItem('registeredEvents') || '[]');
         let currentPage = 1;
         const eventsPerPage = 10;
@@ -404,18 +437,17 @@
             updatePagination(filteredEvents.length, page);
         }
 
-        // Load your events
+        // Load your events (Modified version)
         function loadYourEvents() {
             const container = document.getElementById('yourEventsContainer');
-
             if (registeredEvents.length === 0) {
                 container.innerHTML = `
-            <div class="text-center text-muted">
-                <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.5;"></i>
-                <p class="mt-2">No events registered yet</p>
-                <small>Browse events and register for your first event!</small>
-            </div>
-        `;
+                    <div class="text-center text-muted">
+                        <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-2">No events registered yet</p>
+                        <small>Browse events and register for your first event!</small>
+                    </div>
+                `;
                 return;
             }
 
@@ -423,34 +455,38 @@
                 const now = new Date();
                 const isPast = event.end_date < now;
 
+                const payment = eventPayments.find(p => p.event_id === event.id);
+                const paymentStatus = payment?.payment_status || 'pending';
+
                 return `
-            <div class="event-card">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h6 class="mb-1">${event.name}</h6>
-                    <span class="event-status ${isPast ? 'status-attended' : 'status-registered'}">
-                        ${isPast ? 'Attended' : 'Registered'}
-                    </span>
-                </div>
-                <div class="small text-muted mb-2">
-                    <i class="bi bi-calendar me-1"></i>${event.start_date && event.end_date
+                    <div class="event-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-1">${event.name}</h6>
+                            <span class="event-status ${isPast ? 'status-attended' : 'status-registered'}">
+                                ${isPast ? 'Attended' : 'Registered'}
+                            </span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-calendar me-1"></i>${event.start_date && event.end_date
                                 ? `${formatDate(event.start_date)} - ${formatDate(event.end_date)}`
                                 : formatDate(event.date)}
-                </div>
-                <div class="small text-muted mb-2">
-                    <i class="bi bi-geo-alt me-1"></i>${event.location}
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary flex-fill" onclick="viewEventDetails(${event.id})">
-                        <i class="bi bi-eye me-1"></i>Details
-                    </button>
-                    ${!isPast ?
-                        `<button class="btn btn-sm btn-outline-danger" onclick="cancelRegistration(${event.id})" title="Cancel">
-                                            <i class="bi bi-x"></i>
-                                        </button>` : ''
-                    }
-                </div>
-            </div>
-        `;
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>${event.location}
+                        </div>
+                        <div class="small mb-2">
+                            <span class="badge ${getPaymentStatusBadge(paymentStatus)}">
+                                Payment: ${paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-fill" onclick="viewEventDetails(${event.id})">
+                                <i class="bi bi-eye me-1"></i>Details
+                            </button>
+                            ${!isPast ? getEventActionButtons({ ...event, payment_status: paymentStatus }) : ''}
+                        </div>
+                    </div>
+                `;
             }).join('');
         }
 
@@ -586,6 +622,7 @@
             new bootstrap.Modal(document.getElementById('eventDetailsModal')).show();
         }
 
+        // Register for event
         function registerForEvent(eventId) {
             const event = sampleEvents.find(e => e.id === eventId);
             if (!event) return;
@@ -659,30 +696,6 @@
             new bootstrap.Modal(document.getElementById('registerEventModal')).show();
         }
 
-        // Cancel registration
-        function cancelRegistration(eventId) {
-            if (!confirm('Are you sure you want to cancel your registration?')) return;
-
-            // Remove from registered events
-            registeredEvents = registeredEvents.filter(reg => reg.id !== eventId);
-
-            // Update event capacity
-            const eventIndex = sampleEvents.findIndex(e => e.id === eventId);
-            if (eventIndex !== -1) {
-                sampleEvents[eventIndex].registered -= 1;
-            }
-
-            // Save to localStorage
-            localStorage.setItem('registeredEvents', JSON.stringify(registeredEvents));
-
-            // Refresh UI
-            loadDiscoverEvents(currentPage, document.getElementById('typeFilter').value);
-            loadYourEvents();
-            updateStats();
-
-            alert('Registration cancelled successfully!');
-        }
-
         // Refresh events
         function refreshEvents() {
             loadDiscoverEvents(currentPage, document.getElementById('typeFilter').value);
@@ -722,6 +735,231 @@
             loadDiscoverEvents();
             loadYourEvents();
             updateStats();
+        });
+
+        // Helper function to get payment status badge class
+        function getPaymentStatusBadge(status) {
+            switch(status) {
+                case 'verified': return 'bg-success';
+                case 'pending': return 'bg-warning';
+                case 'rejected': return 'bg-danger';
+                case 'on-progress': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // Helper function to get event action buttons based on payment status
+        function getEventActionButtons(event) {
+            const paymentStatus = event?.payment_status || 'pending';
+
+            switch(paymentStatus) {
+                case 'pending':
+                    return `<button class="btn btn-sm btn-outline-success" onclick="openUploadModal(${event.id})" title="Upload Receipt">
+                                <i class="bi bi-cloud-upload me-1"></i>Upload Receipt
+                            </button>`;
+                case 'verified':
+                    return `<button class="btn btn-sm btn-success" onclick="showQRCode(${event.id})" title="Show QR Code">
+                                <i class="bi bi-qr-code me-1"></i>Show QR
+                            </button>`;
+                case 'rejected':
+                    return `<button class="btn btn-sm btn-outline-warning" onclick="openUploadModal(${event.id})" title="Re-upload Receipt">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Re-upload
+                            </button>`;
+                case 'on-progress':
+                return `<button class="btn btn-sm btn-outline-info" disabled title="Your receipt is being reviewed">
+                            <i class="bi bi-hourglass-split me-1"></i>In Review
+                        </button>`;
+                default:
+                    return '';
+            }
+        }
+
+        // Open upload receipt modal
+        function openUploadModal(eventId) {
+            document.getElementById('eventIdForUpload').value = eventId;
+            document.getElementById('uploadReceiptForm').reset();
+            document.getElementById('imagePreview').classList.add('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('uploadReceiptModal'));
+            modal.show();
+        }
+
+        // Preview image before upload
+        document.getElementById('receiptFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size too large. Please select an image under 5MB.');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file.');
+                    e.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Upload receipt function - sends POST to Node.js backend
+        async function uploadReceipt() {
+            const form = document.getElementById('uploadReceiptForm');
+            const fileInput = document.getElementById('receiptFile');
+            const eventId = document.getElementById('eventIdForUpload').value;
+            const submitBtn = document.getElementById('submitReceiptBtn');
+            const spinner = document.getElementById('uploadSpinner');
+
+            if (!fileInput.files[0]) {
+                alert('Please select a receipt image.');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            try {
+                const formData = new FormData();
+                formData.append('receipt', fileInput.files[0]);
+                formData.append('event_id', eventId);
+                formData.append('user_id', getCurrentUserId()); // Assume this function exists
+
+                // Send POST to Node.js backend
+                const response = await fetch('http://localhost:3000/api/registrations/upload-receipt', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`, // Assume this function exists
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success
+                    showAlert('Receipt uploaded successfully! Please wait for verification.', 'success');
+
+                    // Update event payment status in local data
+                    const eventIndex = registeredEvents.findIndex(e => e.id == eventId);
+                    if (eventIndex !== -1) {
+                        registeredEvents[eventIndex].payment_status = 'pending';
+                    }
+
+                    // Refresh the events display
+                    loadYourEvents();
+
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('uploadReceiptModal')).hide();
+
+                } else {
+                    throw new Error(result.message || 'Upload failed');
+                }
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showAlert('Failed to upload receipt. Please try again.', 'danger');
+            } finally {
+                // Hide loading state
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+            }
+        }
+
+        // Show QR Code function
+        async function showQRCode(eventId) {
+            try {
+                // Get QR code from Node.js backend
+                const response = await fetch(`http://localhost:3000/api/registrations/qr-code/${eventId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.qr_code) {
+                    // Display QR code in modal
+                    document.getElementById('qrCodeContainer').innerHTML = `
+                        <img src="${result.qr_code}" alt="Event QR Code" class="img-fluid" style="max-width: 250px;">
+                    `;
+
+                    const modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+                    modal.show();
+                } else {
+                    throw new Error(result.message || 'Failed to load QR code');
+                }
+
+            } catch (error) {
+                console.error('QR Code error:', error);
+                showAlert('Failed to load QR code. Please try again.', 'danger');
+            }
+        }
+
+        // Check payment status periodically (optional)
+        function checkPaymentStatusUpdates() {
+            setInterval(async () => {
+                try {
+                    const response = await fetch('http://localhost:3000/api/registrations/payment-status', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.events) {
+                        // Update local events data with new payment statuses
+                        result.events.forEach(updatedEvent => {
+                            const eventIndex = registeredEvents.findIndex(e => e.id == updatedEvent.id);
+                            if (eventIndex !== -1) {
+                                registeredEvents[eventIndex].payment_status = updatedEvent.payment_status;
+                            }
+                        });
+
+                        // Refresh display
+                        loadYourEvents();
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 30000); // Check every 30 seconds
+        }
+
+        // Helper functions (assume these exist in your app)
+        function getCurrentUserId() {
+            // Return current user ID
+            return window.currentUserId || 1;
+        }
+
+        function getAuthToken() {
+            // Return auth token for API calls
+            return localStorage.getItem('token') || '';
+        }
+
+        function showAlert(message, type) {
+            // Show bootstrap alert or custom notification
+            // Implementation depends on your existing alert system
+            alert(message); // Simple fallback
+        }
+
+        // Initialize periodic status checking when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start checking payment status updates
+            checkPaymentStatusUpdates();
         });
     </script>
 @endpush

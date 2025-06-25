@@ -25,37 +25,8 @@ class EventController extends Controller
 
         $events = $response['events'] ?? [];
         $eventTypes = $response['eventTypes'] ?? [];
+        $eventPayments = $response['eventPayments'] ?? [];
 
-        return view('roles.member.dashboard', compact('events', 'eventTypes'));
-    }
-    public function register(Request $request, $eventId)
-    {
-        dd($request);
-        $data = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email',
-            'phone' => 'nullable|string'
-        ]);
-
-        // Sertakan user ID jika menggunakan auth
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'Please login first.');
-        }
-
-        $payload = [
-            'name'        => $data['name'],
-            'email'       => $data['email'],
-            'phone'       => $data['phone'] ?? null,
-        ];
-
-        // Kirim ke API Node.js
-        $response = $this->apiService->post("events/{$eventId}/register", $payload);
-
-        if (isset($response['error'])) {
-            return back()->with('error', $response['error']);
-        }
-
-        return redirect()->route('member.events.index')->with('success', 'Registration successful!');
+        return view('roles.member.dashboard', compact('events', 'eventTypes', 'eventPayments'));
     }
 }

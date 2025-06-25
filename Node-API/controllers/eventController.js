@@ -10,9 +10,32 @@ const getAllEvents = async (req, res) => {
       FROM events e
       JOIN event_types et ON e.event_type_id = et.id
     `);
+
     const [eventTypes] = await db.query('SELECT id, type FROM event_types');
 
-    res.status(200).json({ events, eventTypes });
+    const [eventPayments] = await db.query(`
+      SELECT 
+        e.id AS event_id,
+        e.name AS event_name,
+        e.start_date,
+        e.end_date,
+        e.registration_fee,
+        e.location,
+        e.poster_image,
+
+        p.id AS payment_id,
+        p.amount,
+        p.status AS payment_status,
+        p.notes AS payment_notes,
+        p.created_at AS payment_created_at,
+        p.updated_at AS payment_updated_at
+
+    FROM payments p
+    JOIN registrations r ON p.registration_id = r.id
+    JOIN events e ON r.event_id = e.id
+    `);
+
+    res.status(200).json({ events, eventTypes, eventPayments });
   } catch (err) {
     console.error('Error fetching events:', err);
     res.status(500).json({ message: 'Gagal mengambil data event' });
@@ -134,7 +157,6 @@ const updateEvent = (req, res) => {
         res.status(200).json({ message: 'Event berhasil diperbarui.' });
     });
 };
-
 
 module.exports = {
   getAllEvents,
