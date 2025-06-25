@@ -27,7 +27,8 @@ class EventController extends Controller
             return back()->with('error', $response['error']);
         }
 
-        $events = $response['data'];
+        $events = $response['events'] ?? [];
+        // $eventTypes = $response['eventTypes'] ?? []; // Uncomment if you need
         return view('events.index', compact('events'));
     }
 

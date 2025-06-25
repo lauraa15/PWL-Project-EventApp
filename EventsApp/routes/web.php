@@ -73,7 +73,8 @@ Route::prefix('organizer')->name('organizer.')->group(function () {
 
 // ---------------- MEMBER ----------------
 Route::prefix('member')->name('member.')->group(function () {
-    Route::view('/dashboard', 'roles.member.dashboard')->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\Member\EventController::class, 'index'])->name('member.dashboard');
+    Route::post('/dashboard/{event}/register', [App\Http\Controllers\Member\EventController::class, 'register'])->name('member.register');
 });
 
 // ✅ Components

@@ -4,7 +4,7 @@
             <div class="logo">
                 <a href="{{ route('dashboard') }}"><img src="{{ asset('assets/compiled/png/eventee2.png') }}" alt="Logo"></a>
             </div>
-            
+
             <div class="header-top-right">
                 @include('layouts-horizontal.partials.user-register')
                 <!-- Burger button responsive -->
@@ -14,6 +14,6 @@
             </div>
         </div>
     </div>
-    
+
     @include('layouts-horizontal.partials.navbar')
 </header>
